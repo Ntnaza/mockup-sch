@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockup Aplikasi Sekolah - Manajemen Absensi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        /* Style untuk radio button custom */
+        .custom-radio:checked + label {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+            color: #2563eb; /* blue-600 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="flex h-screen">
+        <aside class="w-64 bg-white shadow-md hidden md:block">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800">App Sekolah</h2>
+                <p class="text-sm text-gray-500">Versi 1.0</p>
+            </div>
+            <nav class="mt-6">
+                <a href="#" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <ion-icon name="grid-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <ion-icon name="people-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">PPDB</span>
+                </a>
+                <a href="#" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <ion-icon name="wallet-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">Keuangan</span>
+                </a>
+                <a href="#" class="flex items-center px-6 py-3 bg-blue-500 text-white font-semibold">
+                    <ion-icon name="checkmark-done-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">Absensi Siswa</span>
+                </a>
+                <a href="#" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <ion-icon name="alert-circle-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">Pelanggaran</span>
+                </a>
+                 <a href="#" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+                    <ion-icon name="book-outline" class="w-5 h-5"></ion-icon>
+                    <span class="mx-4">Akademik</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Manajemen Absensi Siswa</h1>
+                <p class="text-gray-600 mt-1">Buat, lihat, dan kelola rekap absensi harian per kelas.</p>
+            </header>
+
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Riwayat Absensi</h3>
+                    <button id="addAttendanceBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>
+                        Buat Absensi Baru
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Tanggal</th>
+                                <th scope="col" class="px-6 py-3">Kelas</th>
+                                <th scope="col" class="px-6 py-3 text-center text-green-600">Hadir</th>
+                                <th scope="col" class="px-6 py-3 text-center text-yellow-600">Sakit</th>
+                                <th scope="col" class="px-6 py-3 text-center text-blue-600">Izin</th>
+                                <th scope="col" class="px-6 py-3 text-center text-red-600">Alpha</th>
+                                <th scope="col" class="px-6 py-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceHistoryTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="attendanceModal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b">
+                <h3 id="modalTitle" class="text-2xl font-bold">Buat Absensi Kelas</h3>
+                <form id="attendanceSetupForm" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="classSelect" class="block text-gray-700 text-sm font-bold mb-2">Pilih Kelas:</label>
+                        <select id="classSelect" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                            </select>
+                    </div>
+                    <div>
+                        <label for="attendanceDate" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label>
+                        <input type="date" id="attendanceDate" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="studentListContainer" class="p-6 overflow-y-auto">
+                <p class="text-center text-gray-500">Pilih kelas dan tanggal untuk menampilkan daftar siswa.</p>
+            </div>
+
+            <div class="p-6 border-t bg-gray-50 flex items-center justify-end rounded-b-lg">
+                <button type="button" id="cancelBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button>
+                <button type="button" id="saveAttendanceBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan Absensi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elemen DOM ---
+            const addAttendanceBtn = document.getElementById('addAttendanceBtn');
+            const modal = document.getElementById('attendanceModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
+            const historyTableBody = document.getElementById('attendanceHistoryTableBody');
+            const modalTitle = document.getElementById('modalTitle');
+            const classSelect = document.getElementById('classSelect');
+            const attendanceDate = document.getElementById('attendanceDate');
+            const studentListContainer = document.getElementById('studentListContainer');
+            
+            // --- Data Master & State Aplikasi ---
+            const LOCAL_STORAGE_KEY = 'schoolAttendances';
+            const MASTER_DATA_SISWA = {
+                "10 IPA 1": ["Ahmad Fauzi", "Budi Santoso", "Citra Lestari", "Dewi Anggraini", "Eko Prasetyo"],
+                "11 IPS 2": ["Fajar Nugraha", "Gita Permata", "Hadi Wijaya", "Indah Sari", "Joko Susilo"],
+                "12 Bahasa": ["Kartika Putri", "Lia Amelia", "Mega Utami", "Nina Rosdiana", "Putra Bangsa"]
+            };
+            let attendances = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || [];
+
+            // --- Fungsi CRUD ---
+
+            // READ: Menampilkan data riwayat ke tabel
+            const renderHistoryTable = () => {
+                historyTableBody.innerHTML = '';
+                if (attendances.length === 0) {
+                    historyTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 px-6 text-gray-500">Belum ada riwayat absensi.</td></tr>`;
+                    return;
+                }
+                 // Urutkan data berdasarkan tanggal terbaru
+                const sortedAttendances = [...attendances].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+                sortedAttendances.forEach(att => {
+                    const row = `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${att.tanggal}</td>
+                            <td class="px-6 py-4">${att.kelas}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-green-600">${att.rekap.hadir}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-yellow-600">${att.rekap.sakit}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-blue-600">${att.rekap.izin}</td>
+                            <td class="px-6 py-4 text-center font-semibold text-red-600">${att.rekap.alpha}</td>
+                            <td class="px-6 py-4 flex items-center space-x-2">
+                                <button onclick="handleEdit('${att.id}')" class="text-blue-600 hover:text-blue-900 font-medium">Edit</button>
+                                <button onclick="handleDelete('${att.id}')" class="text-red-600 hover:text-red-900 font-medium">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                    historyTableBody.innerHTML += row;
+                });
+            };
+
+            // Menyimpan data ke Local Storage
+            const saveToLocalStorage = () => {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(attendances));
+            };
+            
+            // --- Logika Inti Absensi ---
+
+            const populateStudentList = (kelas, existingDetails = null) => {
+                const students = MASTER_DATA_SISWA[kelas];
+                if (!students) {
+                    studentListContainer.innerHTML = '<p class="text-center text-gray-500">Data siswa untuk kelas ini tidak ditemukan.</p>';
+                    return;
+                }
+
+                studentListContainer.innerHTML = students.map((studentName, index) => {
+                    const studentId = `student-${index}`;
+                    const existingStatus = existingDetails ? existingDetails.find(d => d.nama === studentName)?.status : 'Hadir';
+                    
+                    const isChecked = (status) => existingStatus === status ? 'checked' : '';
+
+                    return `
+                        <div class="flex items-center justify-between py-3 border-b">
+                            <span class="text-gray-800">${studentName}</span>
+                            <div class="flex items-center space-x-2" data-student-name="${studentName}">
+                                <input type="radio" id="${studentId}-h" name="${studentId}" value="Hadir" class="hidden custom-radio" ${isChecked('Hadir')}>
+                                <label for="${studentId}-h" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Hadir</label>
+                                
+                                <input type="radio" id="${studentId}-s" name="${studentId}" value="Sakit" class="hidden custom-radio" ${isChecked('Sakit')}>
+                                <label for="${studentId}-s" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Sakit</label>
+                                
+                                <input type="radio" id="${studentId}-i" name="${studentId}" value="Izin" class="hidden custom-radio" ${isChecked('Izin')}>
+                                <label for="${studentId}-i" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Izin</label>
+                                
+                                <input type="radio" id="${studentId}-a" name="${studentId}" value="Alpha" class="hidden custom-radio" ${isChecked('Alpha')}>
+                                <label for="${studentId}-a" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Alpha</label>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            // CREATE & UPDATE: Menyimpan absensi
+            saveAttendanceBtn.addEventListener('click', () => {
+                const kelas = classSelect.value;
+                const tanggal = attendanceDate.value;
+                if (!kelas || !tanggal) {
+                    alert('Harap pilih kelas dan tanggal terlebih dahulu.');
+                    return;
+                }
+
+                const attendanceId = `${kelas}_${tanggal}`;
+                const detail = [];
+                const rekap = { hadir: 0, sakit: 0, izin: 0, alpha: 0 };
+                
+                const studentDivs = studentListContainer.querySelectorAll('[data-student-name]');
+                studentDivs.forEach(div => {
+                    const nama = div.dataset.studentName;
+                    const status = div.querySelector('input[type="radio"]:checked').value;
+                    detail.push({ nama, status });
+                    rekap[status.toLowerCase()]++;
+                });
+
+                const newAttendance = { id: attendanceId, kelas, tanggal, rekap, detail };
+                
+                const existingIndex = attendances.findIndex(att => att.id === attendanceId);
+                if (existingIndex > -1) { // Mode UPDATE
+                    attendances[existingIndex] = newAttendance;
+                } else { // Mode CREATE
+                    attendances.push(newAttendance);
+                }
+
+                saveToLocalStorage();
+                renderHistoryTable();
+                closeModal();
+            });
+
+            // --- Fungsi Helper ---
+            const openModalForCreate = () => {
+                modalTitle.textContent = 'Buat Absensi Kelas';
+                classSelect.disabled = false;
+                attendanceDate.disabled = false;
+                classSelect.value = '';
+                attendanceDate.valueAsDate = new Date(); // Default tanggal hari ini
+                studentListContainer.innerHTML = '<p class="text-center text-gray-500">Pilih kelas dan tanggal untuk menampilkan daftar siswa.</p>';
+                modal.classList.remove('hidden');
+            };
+
+            const openModalForEdit = (id) => {
+                const attendance = attendances.find(att => att.id === id);
+                if (!attendance) return;
+
+                modalTitle.textContent = `Edit Absensi Kelas ${attendance.kelas}`;
+                classSelect.value = attendance.kelas;
+                attendanceDate.value = attendance.tanggal;
+                classSelect.disabled = true;
+                attendanceDate.disabled = true;
+
+                populateStudentList(attendance.kelas, attendance.detail);
+                modal.classList.remove('hidden');
+            };
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+            };
+            
+            // --- Event Handlers Global (untuk tombol Edit/Delete) ---
+            window.handleEdit = (id) => {
+                openModalForEdit(id);
+            };
+
+            window.handleDelete = (id) => {
+                if (confirm('Apakah Anda yakin ingin menghapus data absensi ini?')) {
+                    attendances = attendances.filter(att => att.id !== id);
+                    saveToLocalStorage();
+                    renderHistoryTable();
+                }
+            };
+            
+            // --- Event Listeners ---
+            addAttendanceBtn.addEventListener('click', openModalForCreate);
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+
+            // Tampilkan daftar siswa saat kelas dipilih
+            classSelect.addEventListener('change', () => {
+                if(classSelect.value) {
+                    populateStudentList(classSelect.value);
+                } else {
+                     studentListContainer.innerHTML = '<p class="text-center text-gray-500">Pilih kelas dan tanggal untuk menampilkan daftar siswa.</p>';
+                }
+            });
+
+            // --- Inisialisasi Aplikasi ---
+            // Isi pilihan kelas
+            classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            Object.keys(MASTER_DATA_SISWA).forEach(className => {
+                classSelect.innerHTML += `<option value="${className}">${className}</option>`;
+            });
+
+            // Tambahkan data contoh jika local storage kosong
+            if (attendances.length === 0) {
+                const today = new Date().toISOString().slice(0, 10);
+                attendances = [
+                    { id: `10 IPA 1_${today}`, kelas: '10 IPA 1', tanggal: today, rekap: { hadir: 3, sakit: 1, izin: 1, alpha: 0 }, detail: [
+                        {nama: 'Ahmad Fauzi', status: 'Hadir'}, {nama: 'Budi Santoso', status: 'Sakit'}, {nama: 'Citra Lestari', status: 'Izin'}, {nama: 'Dewi Anggraini', status: 'Hadir'}, {nama: 'Eko Prasetyo', status: 'Hadir'}
+                    ]}
+                ];
+                saveToLocalStorage();
+            }
+
+            renderHistoryTable();
+        });
+    </script>
+</body>
+</html>
