@@ -1,124 +1,315 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku Tamu - Aplikasi Sekolah</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-    <style>
-        .modal { transition: opacity 0.25s ease; }
-        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
-        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku Tamu - Aplikasi Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <style>
+    .modal { transition: opacity 0.25s ease; }
+    .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+    .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+  </style>
 </head>
 <body class="bg-gray-100 font-sans">
-    <div class="flex h-screen">
-        <div id="sidebar-placeholder"></div>
+  <div class="flex h-screen">
+    <div id="sidebar-placeholder"></div>
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-center">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Buku Tamu Digital</h1>
+          <p class="text-gray-600 mt-1">Catat dan kelola semua tamu yang berkunjung ke sekolah.</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+          <label for="date-filter" class="text-sm font-medium text-gray-700">Riwayat tanggal:</label>
+          <input type="date" id="date-filter" class="border rounded-lg p-2 mt-1 w-full md:w-auto">
+        </div>
+      </header>
+
+      <!-- Statistik -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+          <p class="text-gray-500">Total Kunjungan Hari Ini</p>
+          <p id="statTotal" class="text-3xl font-bold text-gray-900">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+          <p class="text-gray-500">Tamu Masih di Lokasi</p>
+          <p id="statCurrent" class="text-3xl font-bold text-blue-600">0</p>
+        </div>
+      </div>
+
+      <!-- Tabel Tamu -->
+      <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-semibold text-gray-800">Daftar Tamu</h3>
+          <button id="addGuestBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+            <ion-icon name="add-outline" class="mr-2"></ion-icon> Tambah Tamu
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th class="px-6 py-3">Waktu Masuk</th>
+                <th class="px-6 py-3">Nama Tamu</th>
+                <th class="px-6 py-3">Bertemu Dengan</th>
+                <th class="px-6 py-3">Tujuan</th>
+                <th class="px-6 py-3">Foto Tamu</th>
+                <th class="px-6 py-3">Waktu Keluar</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="guestTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Form -->
+  <div id="buku_tamu-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+    <form id="addGuestForm" class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 space-y-4">
+      <h3 class="text-xl font-bold mb-4">Formulir Tamu Baru</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         
-        <main class="flex-1 overflow-y-auto p-6 md:p-10">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center">
-                <div><h1 class="text-3xl font-bold text-gray-900">Buku Tamu Digital</h1><p class="text-gray-600 mt-1">Catat dan kelola semua tamu yang berkunjung ke sekolah.</p></div>
-                <div class="mt-4 md:mt-0"><label for="date-filter" class="text-sm font-medium text-gray-700">Riwayat tanggal:</label><input type="date" id="date-filter" class="border rounded-lg p-2 mt-1 w-full md:w-auto"></div>
-            </header>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Total Kunjungan Hari Ini</p><p id="statTotal" class="text-3xl font-bold text-gray-900">0</p></div>
-                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Tamu Masih di Lokasi</p><p id="statCurrent" class="text-3xl font-bold text-blue-600">0</p></div>
-            </div>
-            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold text-gray-800">Daftar Tamu</h3><button id="addGuestBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"><ion-icon name="add-outline" class="mr-2"></ion-icon> Tambah Tamu</button></div>
-                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Waktu Masuk</th><th class="px-6 py-3">Nama Tamu</th><th class="px-6 py-3">Bertemu Dengan</th><th class="px-6 py-3">Tujuan</th><th class="px-6 py-3">Waktu Keluar</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-center">Aksi</th></tr></thead><tbody id="guestTableBody"></tbody></table></div>
-            </div>
-        </main>
+        <!-- Form Data -->
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2">Nama Tamu</label>
+          <input type="text" id="guestName" class="w-full border rounded py-2 px-3" required>
+          
+          <label class="block text-gray-700 text-sm font-bold mb-2 mt-4">Asal/Instansi</label>
+          <input type="text" id="guestOrigin" class="w-full border rounded py-2 px-3" required>
+          
+          <label class="block text-gray-700 text-sm font-bold mb-2 mt-4">Bertemu Dengan (Nama Guru/Staf)</label>
+          <input type="text" id="guestMeeting" class="w-full border rounded py-2 px-3" required>
+          
+          <label class="block text-gray-700 text-sm font-bold mb-2 mt-4">Tujuan Kunjungan</label>
+          <textarea id="guestPurpose" class="w-full border rounded py-2 px-3" rows="3" required></textarea>
+        </div>
+
+        <!-- Kamera -->
+        <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="text-lg font-semibold text-gray-800 mb-2">Ambil Foto</h2>
+          <div id="camera-container" class="relative w-full aspect-[4/3] overflow-hidden rounded-lg bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
+            <video id="webcam-preview" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+            <canvas id="photo-canvas" class="hidden absolute inset-0 w-full h-full object-cover"></canvas>
+          </div>
+          <button type="button" id="capturePhotoBtn" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center">
+            <ion-icon name="camera" class="mr-2"></ion-icon> Ambil Foto
+          </button>
+          <input type="hidden" id="photoData" name="photoData">
+        </div>
+      </div>
+      <div class="flex justify-end pt-4">
+        <button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button>
+        <button type="submit" id="saveBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>Simpan & Check-in</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Modal View Foto -->
+  <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50">
+    <div class="relative">
+      <button onclick="closePhotoModal()" class="absolute -top-6 -right-6 bg-red-600 text-white px-3 py-1 rounded-full">✖</button>
+      <img id="photoModalImg" src="" class="max-h-[80vh] max-w-[90vw] rounded-lg shadow-lg border-4 border-white">
     </div>
+  </div>
 
-    <!-- Modal for this page -->
-    <div id="buku_tamu-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <form id="addGuestForm" class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 space-y-4"><h3 class="text-xl font-bold mb-4">Formulir Tamu Baru</h3><div><label class="block text-gray-700 text-sm font-bold mb-2">Nama Tamu</label><input type="text" id="guestName" class="w-full border rounded py-2 px-3" required></div><div><label class="block text-gray-700 text-sm font-bold mb-2">Asal/Instansi</label><input type="text" id="guestOrigin" class="w-full border rounded py-2 px-3" required></div><div><label class="block text-gray-700 text-sm font-bold mb-2">Bertemu Dengan (Nama Guru/Staf)</label><input type="text" id="guestMeeting" class="w-full border rounded py-2 px-3" required></div><div><label class="block text-gray-700 text-sm font-bold mb-2">Tujuan Kunjungan</label><textarea id="guestPurpose" class="w-full border rounded py-2 px-3" rows="3" required></textarea></div><div class="flex justify-end pt-4"><button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button><button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan & Check-in</button></div></form>
-    </div>
+  <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
 
-    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+  <script src="../assets/app.js" defer></script>
+  <script src="../assets/sidebar-sub.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const dateFilter = document.getElementById('date-filter');
+      const tableBody = document.getElementById('guestTableBody');
+      const modal = document.getElementById('buku_tamu-modal');
+      const addBtn = document.getElementById('addGuestBtn');
+      const form = document.getElementById('addGuestForm');
+      const saveBtn = document.getElementById('saveBtn');
 
-    <script src="../assets/app.js" defer></script>
-    <script src="../assets/sidebar-sub.js" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dateFilter = document.getElementById('date-filter');
-            const tableBody = document.getElementById('guestTableBody');
-            const modal = document.getElementById('buku_tamu-modal');
-            const addBtn = document.getElementById('addGuestBtn');
-            const form = document.getElementById('addGuestForm');
+      const webcamPreview = document.getElementById('webcam-preview');
+      const photoCanvas = document.getElementById('photo-canvas');
+      const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+      const photoDataInput = document.getElementById('photoData');
+      const ctx = photoCanvas.getContext('2d');
 
-            const KEY = 'schoolGuestLog';
-            const getInitialData = () => {
-                const today = App.helpers.getToday();
-                const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-                return [{ id: `guest_1`, tanggal: today, waktuMasuk: '09:15', nama: 'Arief Budiman', instansi: 'Dinas Pendidikan', bertemu: 'Dr. Indah Permata, M.Pd.', tujuan: 'Rapat Koordinasi', waktuKeluar: '10:30', status: 'Sudah Keluar' }, { id: `guest_2`, tanggal: today, waktuMasuk: '11:00', nama: 'Rina Wati', instansi: 'Orang Tua Murid', bertemu: 'Bambang Subagio, S.Kom.', tujuan: 'Konsultasi nilai anak', waktuKeluar: null, status: 'Masih di Lokasi' }, { id: `guest_3`, tanggal: yesterday, waktuMasuk: '13:00', nama: 'CV Percetakan Maju', instansi: 'Vendor', bertemu: 'Bagian TU', tujuan: 'Pengantaran dokumen', waktuKeluar: '13:10', status: 'Sudah Keluar' }];
-            };
-            let guestLog = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
-            const save = () => localStorage.setItem(KEY, JSON.stringify(guestLog));
-            
-            const getStatusBadge = (status) => {
-                const styles = {'Masih di Lokasi': 'bg-blue-100 text-blue-800', 'Sudah Keluar': 'bg-gray-100 text-gray-800'};
-                return `<span class="px-2 py-1 text-xs font-medium rounded-full ${styles[status] || ''}">${status}</span>`;
-            };
+      const KEY = 'schoolGuestLog';
+      const getInitialData = () => {
+        const today = App.helpers.getToday();
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        return [
+          { id: 'guest_1', tanggal: today, waktuMasuk: '09:15', nama: 'Arief Budiman', instansi: 'Dinas Pendidikan', bertemu: 'Dr. Indah Permata, M.Pd.', tujuan: 'Rapat Koordinasi', photo: 'https://via.placeholder.com/150', waktuKeluar: '10:30', status: 'Sudah Keluar' },
+          { id: 'guest_2', tanggal: today, waktuMasuk: '11:00', nama: 'Rina Wati', instansi: 'Orang Tua Murid', bertemu: 'Bambang Subagio, S.Kom.', tujuan: 'Konsultasi nilai anak', photo: 'https://via.placeholder.com/150', waktuKeluar: null, status: 'Masih di Lokasi' },
+          { id: 'guest_3', tanggal: yesterday, waktuMasuk: '13:00', nama: 'CV Percetakan Maju', instansi: 'Vendor', bertemu: 'Bagian TU', tujuan: 'Pengantaran dokumen', photo: 'https://via.placeholder.com/150', waktuKeluar: '13:10', status: 'Sudah Keluar' }
+        ];
+      };
+      let guestLog = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+      const save = () => localStorage.setItem(KEY, JSON.stringify(guestLog));
 
-            const render = (date) => {
-                tableBody.innerHTML = '';
-                const dailyGuests = guestLog.filter(g => g.tanggal === date).sort((a,b) => b.id.split('_')[1] - a.id.split('_')[1]);
-                if (dailyGuests.length === 0) { tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-6">Belum ada tamu pada tanggal ini.</td></tr>`; }
-                else {
-                    dailyGuests.forEach(guest => {
-                        const checkoutButton = guest.status === 'Masih di Lokasi' ? `<button class="checkout-btn bg-green-500 text-white text-xs font-bold py-1 px-3 rounded-full hover:bg-green-600" data-id="${guest.id}">Check-out</button>` : `<span class="text-gray-400">Selesai</span>`;
-                        tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-bold text-gray-900">${guest.waktuMasuk}</td><td class="px-6 py-4 font-medium text-gray-800">${guest.nama}<p class="font-normal text-gray-500">${guest.instansi}</p></td><td class="px-6 py-4">${guest.bertemu}</td><td class="px-6 py-4">${guest.tujuan}</td><td class="px-6 py-4 font-bold text-gray-900">${guest.waktuKeluar || '-'}</td><td class="px-6 py-4">${getStatusBadge(guest.status)}</td><td class="px-6 py-4 text-center">${checkoutButton}</td></tr>`;
-                    });
-                }
-                document.getElementById('statTotal').textContent = dailyGuests.length;
-                document.getElementById('statCurrent').textContent = dailyGuests.filter(g => g.status === 'Masih di Lokasi').length;
-            };
+      let stream = null;
 
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const now = new Date();
-                const newGuest = {
-                    id: `guest_${Date.now()}`,
-                    tanggal: now.toISOString().slice(0, 10),
-                    waktuMasuk: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                    nama: document.getElementById('guestName').value,
-                    instansi: document.getElementById('guestOrigin').value,
-                    bertemu: document.getElementById('guestMeeting').value,
-                    tujuan: document.getElementById('guestPurpose').value,
-                    waktuKeluar: null,
-                    status: 'Masih di Lokasi'
-                };
-                guestLog.push(newGuest);
-                save();
-                dateFilter.value = newGuest.tanggal;
-                render(newGuest.tanggal);
-                modal.classList.add('hidden');
-                App.helpers.showToast('Tamu berhasil check-in!');
-            });
+      const startWebcam = async () => {
+        if (stream) stopWebcam();
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          webcamPreview.srcObject = stream;
+          webcamPreview.classList.remove('hidden');
+          photoCanvas.classList.add('hidden');
+          photoDataInput.value = '';
+          saveBtn.disabled = true;
+          capturePhotoBtn.innerHTML = '<ion-icon name="camera" class="mr-2"></ion-icon> Ambil Foto';
+        } catch (err) {
+          console.error('Error accessing the camera:', err);
+          App.helpers.showToast('Gagal mengakses kamera. Mohon berikan izin.', 'error');
+        }
+      };
+      const stopWebcam = () => {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+      };
 
-            tableBody.addEventListener('click', (e) => {
-                if (e.target.classList.contains('checkout-btn')) {
-                    const guestId = e.target.dataset.id;
-                    const guestIndex = guestLog.findIndex(g => g.id === guestId);
-                    if (guestIndex > -1) {
-                        const now = new Date();
-                        guestLog[guestIndex].waktuKeluar = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                        guestLog[guestIndex].status = 'Sudah Keluar';
-                        save();
-                        render(dateFilter.value);
-                        App.helpers.showToast('Tamu berhasil check-out!');
-                    }
-                }
-            });
+      const getStatusBadge = (status) => {
+        const styles = {
+          'Masih di Lokasi': 'bg-blue-100 text-blue-800',
+          'Sudah Keluar': 'bg-gray-100 text-gray-800'
+        };
+        return `<span class="px-2 py-1 text-xs font-medium rounded-full ${styles[status] || ''}">${status}</span>`;
+      };
 
-            dateFilter.value = App.helpers.getToday();
-            dateFilter.addEventListener('change', () => render(dateFilter.value));
-            addBtn.addEventListener('click', () => { form.reset(); modal.classList.remove('hidden'); });
+      const render = (date) => {
+        tableBody.innerHTML = '';
+        const dailyGuests = guestLog.filter(g => g.tanggal === date).sort((a, b) => b.id.split('_')[1] - a.id.split('_')[1]);
+        if (dailyGuests.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-6">Belum ada tamu pada tanggal ini.</td></tr>`;
+        } else {
+          dailyGuests.forEach(guest => {
+            const checkoutButton = guest.status === 'Masih di Lokasi'
+              ? `<button class="checkout-btn bg-green-500 text-white text-xs font-bold py-1 px-3 rounded-full hover:bg-green-600" data-id="${guest.id}">Check-out</button>`
+              : `<span class="text-gray-400">Selesai</span>`;
+            const guestPhoto = guest.photo
+              ? `<img src="${guest.photo}" alt="Foto Tamu" 
+                   class="w-12 h-12 rounded-full object-cover cursor-pointer hover:opacity-80 transition"
+                   onclick="openPhotoModal('${guest.photo}')">`
+              : `<span class="text-gray-400">Tidak ada</span>`;
+            tableBody.innerHTML += `
+              <tr class="bg-white border-b hover:bg-gray-50">
+                <td class="px-6 py-4 font-bold text-gray-900">${guest.waktuMasuk}</td>
+                <td class="px-6 py-4 font-medium text-gray-800">${guest.nama}<p class="font-normal text-gray-500">${guest.instansi}</p></td>
+                <td class="px-6 py-4">${guest.bertemu}</td>
+                <td class="px-6 py-4">${guest.tujuan}</td>
+                <td class="px-6 py-4">${guestPhoto}</td>
+                <td class="px-6 py-4 font-bold text-gray-900">${guest.waktuKeluar || '-'}</td>
+                <td class="px-6 py-4">${getStatusBadge(guest.status)}</td>
+                <td class="px-6 py-4 text-center">${checkoutButton}</td>
+              </tr>`;
+          });
+        }
+        document.getElementById('statTotal').textContent = dailyGuests.length;
+        document.getElementById('statCurrent').textContent = dailyGuests.filter(g => g.status === 'Masih di Lokasi').length;
+      };
+
+      // simpan tamu baru
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const now = new Date();
+        const newGuest = {
+          id: `guest_${Date.now()}`,
+          tanggal: now.toISOString().slice(0, 10),
+          waktuMasuk: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+          nama: document.getElementById('guestName').value,
+          instansi: document.getElementById('guestOrigin').value,
+          bertemu: document.getElementById('guestMeeting').value,
+          tujuan: document.getElementById('guestPurpose').value,
+          photo: document.getElementById('photoData').value,
+          waktuKeluar: null,
+          status: 'Masih di Lokasi'
+        };
+        guestLog.push(newGuest);
+        save();
+        dateFilter.value = newGuest.tanggal;
+        render(newGuest.tanggal);
+        modal.classList.add('hidden');
+        stopWebcam();
+        App.helpers.showToast('Tamu berhasil check-in!');
+      });
+
+      // check-out
+      tableBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('checkout-btn')) {
+          const guestId = e.target.dataset.id;
+          const guestIndex = guestLog.findIndex(g => g.id === guestId);
+          if (guestIndex > -1) {
+            const now = new Date();
+            guestLog[guestIndex].waktuKeluar = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            guestLog[guestIndex].status = 'Sudah Keluar';
+            save();
             render(dateFilter.value);
+            App.helpers.showToast('Tamu berhasil check-out!');
+          }
+        }
+      });
+
+      // buka modal
+      addBtn.addEventListener('click', () => {
+        form.reset();
+        modal.classList.remove('hidden');
+        startWebcam();
+      });
+
+      // batal modal
+      modal.querySelectorAll('.cancel-modal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modal.classList.add('hidden');
+          stopWebcam();
         });
-    </script>
+      });
+
+      // ambil foto
+      capturePhotoBtn.addEventListener('click', () => {
+        if (!photoDataInput.value) {
+          if (stream) {
+            photoCanvas.width = webcamPreview.videoWidth;
+            photoCanvas.height = webcamPreview.videoHeight;
+            ctx.drawImage(webcamPreview, 0, 0, photoCanvas.width, photoCanvas.height);
+            const photoDataUrl = photoCanvas.toDataURL('image/png');
+            photoDataInput.value = photoDataUrl;
+            webcamPreview.classList.add('hidden');
+            photoCanvas.classList.remove('hidden');
+            capturePhotoBtn.innerHTML = '<ion-icon name="camera" class="mr-2"></ion-icon> Ambil Foto Lain';
+            saveBtn.disabled = false;
+            stopWebcam();
+          }
+        } else {
+          startWebcam();
+        }
+      });
+
+      dateFilter.value = App.helpers.getToday();
+      dateFilter.addEventListener('change', () => render(dateFilter.value));
+      render(dateFilter.value);
+    });
+
+    // modal foto
+    function openPhotoModal(photoUrl) {
+      const modal = document.getElementById('photoModal');
+      const modalImg = document.getElementById('photoModalImg');
+      modalImg.src = photoUrl;
+      modal.classList.remove('hidden');
+    }
+    function closePhotoModal() {
+      document.getElementById('photoModal').classList.add('hidden');
+    }
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('photoModal');
+      if (e.target === modal) {
+        closePhotoModal();
+      }
+    });
+  </script>
 </body>
 </html>
