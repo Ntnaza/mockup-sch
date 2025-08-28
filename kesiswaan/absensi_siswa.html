@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .custom-radio:checked + label { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen Absensi Siswa</h1><p class="text-gray-600 mt-1">Buat, lihat, dan kelola rekap absensi harian per kelas.</p></header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold text-gray-800">Riwayat Absensi</h3><button id="addAttendanceBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"><ion-icon name="add-outline" class="mr-2"></ion-icon>Buat Absensi Baru</button></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Tanggal</th><th scope="col" class="px-6 py-3">Kelas</th><th scope="col" class="px-6 py-3 text-center text-green-600">Hadir</th><th scope="col" class="px-6 py-3 text-center text-yellow-600">Sakit</th><th scope="col" class="px-6 py-3 text-center text-blue-600">Izin</th><th scope="col" class="px-6 py-3 text-center text-red-600">Alpha</th><th scope="col" class="px-6 py-3">Aksi</th></tr></thead><tbody id="attendanceHistoryTableBody"></tbody></table></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals for this page -->
+    <div id="absensi_siswa-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"><div class="p-6 border-b"><h3 id="modalTitle" class="text-2xl font-bold">Buat Absensi Kelas</h3><form id="attendanceSetupForm" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="classSelect" class="block text-gray-700 text-sm font-bold mb-2">Pilih Kelas:</label><select id="classSelect" class="shadow border rounded w-full py-2 px-3 text-gray-700" required></select></div><div><label for="attendanceDate" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label><input type="date" id="attendanceDate" class="shadow border rounded w-full py-2 px-3 text-gray-700" required></div></form></div><div id="studentListContainer" class="p-6 overflow-y-auto"><p class="text-center text-gray-500">Pilih kelas dan tanggal untuk menampilkan daftar siswa.</p></div><div class="p-6 border-t bg-gray-50 flex items-center justify-end rounded-b-lg"><button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button><button type="button" id="saveAttendanceBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan Absensi</button></div></div>
+    </div>
+    <div id="absensi_siswa_detail-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col"><div class="p-6 border-b flex justify-between items-center"><h3 id="detailModalTitle" class="text-2xl font-bold">Detail Absensi</h3><button class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div><div id="detailModalContent" class="p-6 overflow-y-auto"></div><div class="p-4 border-t bg-gray-50 flex items-center justify-end"><button type="button" id="printBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg flex items-center"><ion-icon name="print-outline" class="mr-2"></ion-icon>Cetak</button></div></div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    <div id="print-area" class="hidden"></div>
+
+    <script src="../assets/app.js"></script>
+<script src="../assets/sidebar-sub.js"></script>
+    <script>
+        // Logika khusus untuk halaman Absensi Siswa
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBtn = document.getElementById('addAttendanceBtn');
+            const modal = document.getElementById('absensi_siswa-modal');
+            const detailModal = document.getElementById('absensi_siswa_detail-modal');
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            const historyTableBody = document.getElementById('attendanceHistoryTableBody');
+            const modalTitle = document.getElementById('modalTitle');
+            const classSelect = document.getElementById('classSelect');
+            const dateInput = document.getElementById('attendanceDate');
+            const studentListContainer = document.getElementById('studentListContainer');
+            
+            const KEY = 'schoolAttendances';
+            const getInitialData = () => {
+                const today = App.helpers.getToday();
+                return [{ id: `10 IPA 1_${today}`, kelas: '10 IPA 1', tanggal: today, rekap: { hadir: 3, sakit: 1, izin: 1, alpha: 1 }, detail: [{nama: 'Ahmad Fauzi', status: 'Hadir'}, {nama: 'Budi Santoso', status: 'Sakit'}, {nama: 'Citra Lestari', status: 'Izin'}, {nama: 'Dewi Anggraini', status: 'Hadir'}, {nama: 'Eko Prasetyo', status: 'Alpha'}]}];
+            };
+            let attendances = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(attendances));
+
+            const render = () => {
+                historyTableBody.innerHTML = '';
+                if (attendances.length === 0) { historyTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Belum ada riwayat absensi.</td></tr>`; return; }
+                const sorted = [...attendances].sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+                sorted.forEach(att => {
+                    historyTableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-medium text-gray-900">${att.tanggal}</td><td class="px-6 py-4">${att.kelas}</td><td class="px-6 py-4 text-center font-semibold text-green-600">${att.rekap.hadir}</td><td class="px-6 py-4 text-center font-semibold text-yellow-600">${att.rekap.sakit}</td><td class="px-6 py-4 text-center font-semibold text-blue-600">${att.rekap.izin}</td><td class="px-6 py-4 text-center font-semibold text-red-600">${att.rekap.alpha}</td><td class="px-6 py-4 flex items-center space-x-2 text-sm"><button class="show-btn font-medium text-gray-600 hover:underline" data-id="${att.id}">Lihat</button><button class="edit-btn font-medium text-blue-600 hover:underline" data-id="${att.id}">Edit</button><button class="print-btn font-medium text-green-600 hover:underline" data-id="${att.id}">Cetak</button><button class="delete-btn font-medium text-red-600 hover:underline" data-id="${att.id}">Hapus</button></td></tr>`;
+                });
+            };
+            
+            const populateStudentList = (kelas, existingDetails = null) => {
+                const students = App.masterData.siswa[kelas];
+                if (!students) { studentListContainer.innerHTML = '<p class="text-center text-gray-500">Data siswa tidak ditemukan.</p>'; return; }
+                studentListContainer.innerHTML = students.map((studentName, index) => {
+                    const studentId = `student-${index}`;
+                    const existingStatus = existingDetails ? existingDetails.find(d => d.nama === studentName)?.status : 'Hadir';
+                    const isChecked = (status) => existingStatus === status ? 'checked' : '';
+                    return `<div class="flex items-center justify-between py-3 border-b"><span class="text-gray-800">${studentName}</span><div class="flex items-center space-x-2" data-student-name="${studentName}"><input type="radio" id="${studentId}-h" name="${studentId}" value="Hadir" class="hidden custom-radio" ${isChecked('Hadir')}><label for="${studentId}-h" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Hadir</label><input type="radio" id="${studentId}-s" name="${studentId}" value="Sakit" class="hidden custom-radio" ${isChecked('Sakit')}><label for="${studentId}-s" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Sakit</label><input type="radio" id="${studentId}-i" name="${studentId}" value="Izin" class="hidden custom-radio" ${isChecked('Izin')}><label for="${studentId}-i" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Izin</label><input type="radio" id="${studentId}-a" name="${studentId}" value="Alpha" class="hidden custom-radio" ${isChecked('Alpha')}><label for="${studentId}-a" class="cursor-pointer text-sm font-semibold py-1 px-3 rounded-full border-2">Alpha</label></div></div>`;
+                }).join('');
+            };
+
+            const openModal = (mode = 'create', id = null) => {
+                if (mode === 'create') {
+                    modalTitle.textContent = 'Buat Absensi Kelas';
+                    classSelect.disabled = false; dateInput.disabled = false;
+                    classSelect.value = ''; dateInput.valueAsDate = new Date();
+                    studentListContainer.innerHTML = '<p class="text-center text-gray-500">Pilih kelas dan tanggal.</p>';
+                } else {
+                    const att = attendances.find(a => a.id === id);
+                    modalTitle.textContent = `Edit Absensi Kelas ${att.kelas}`;
+                    classSelect.value = att.kelas; dateInput.value = att.tanggal;
+                    classSelect.disabled = true; dateInput.disabled = true;
+                    populateStudentList(att.kelas, att.detail);
+                }
+                modal.classList.remove('hidden');
+            };
+
+            const openDetailModal = (id) => {
+                const att = attendances.find(a => a.id === id);
+                document.getElementById('detailModalTitle').textContent = `Detail Absensi Kelas ${att.kelas} (${att.tanggal})`;
+                const content = document.getElementById('detailModalContent');
+                const categorized = { Hadir: [], Sakit: [], Izin: [], Alpha: [] };
+                att.detail.forEach(s => { if (categorized[s.status]) categorized[s.status].push(s.nama); });
+                content.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><h4 class="font-bold text-green-600 border-b pb-2 mb-2">Hadir (${categorized.Hadir.length})</h4><ul class="list-disc pl-5 space-y-1">${categorized.Hadir.map(n => `<li>${n}</li>`).join('') || '<li class="text-gray-400 list-none">Tidak ada</li>'}</ul></div><div><h4 class="font-bold text-yellow-600 border-b pb-2 mb-2">Sakit (${categorized.Sakit.length})</h4><ul class="list-disc pl-5 space-y-1">${categorized.Sakit.map(n => `<li>${n}</li>`).join('') || '<li class="text-gray-400 list-none">Tidak ada</li>'}</ul></div><div><h4 class="font-bold text-blue-600 border-b pb-2 mb-2">Izin (${categorized.Izin.length})</h4><ul class="list-disc pl-5 space-y-1">${categorized.Izin.map(n => `<li>${n}</li>`).join('') || '<li class="text-gray-400 list-none">Tidak ada</li>'}</ul></div><div><h4 class="font-bold text-red-600 border-b pb-2 mb-2">Alpha (${categorized.Alpha.length})</h4><ul class="list-disc pl-5 space-y-1">${categorized.Alpha.map(n => `<li>${n}</li>`).join('') || '<li class="text-gray-400 list-none">Tidak ada</li>'}</ul></div></div>`;
+                document.getElementById('printBtn').dataset.id = id;
+                detailModal.classList.remove('hidden');
+            };
+
+            const printAttendance = (id) => {
+                const att = attendances.find(a => a.id === id);
+                const printArea = document.getElementById('print-area');
+                printArea.innerHTML = `<div style="font-family: sans-serif; padding: 20px; color: black;"><h1 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px;">Laporan Absensi Siswa</h1><div style="margin-top: 20px; display: flex; justify-content: space-between;"><p><strong>Kelas:</strong> ${att.kelas}</p><p><strong>Tanggal:</strong> ${att.tanggal}</p></div><h2 style="margin-top: 30px; font-size: 1.2em;">Rekapitulasi</h2><p>Hadir: ${att.rekap.hadir} | Sakit: ${att.rekap.sakit} | Izin: ${att.rekap.izin} | Alpha: ${att.rekap.alpha}</p><h2 style="margin-top: 20px; font-size: 1.2em;">Detail Kehadiran</h2><table style="width: 100%; border-collapse: collapse; margin-top: 10px;"><thead style="background-color: #f2f2f2;"><tr><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">No.</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Nama Siswa</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Status</th></tr></thead><tbody>${att.detail.sort((a,b) => a.nama.localeCompare(b.nama)).map((s, i) => `<tr><td style="border: 1px solid #ddd; padding: 8px;">${i+1}</td><td style="border: 1px solid #ddd; padding: 8px;">${s.nama}</td><td style="border: 1px solid #ddd; padding: 8px;">${s.status}</td></tr>`).join('')}</tbody></table></div>`;
+                window.print();
+            };
+
+            saveBtn.addEventListener('click', () => {
+                const kelas = classSelect.value, tanggal = dateInput.value;
+                if (!kelas || !tanggal) { alert('Pilih kelas dan tanggal.'); return; }
+                const id = `${kelas}_${tanggal}`, detail = [], rekap = { hadir: 0, sakit: 0, izin: 0, alpha: 0 };
+                studentListContainer.querySelectorAll('[data-student-name]').forEach(div => {
+                    const nama = div.dataset.studentName, status = div.querySelector('input:checked').value;
+                    detail.push({ nama, status }); rekap[status.toLowerCase()]++;
+                });
+                const newAtt = { id, kelas, tanggal, rekap, detail };
+                const existingIndex = attendances.findIndex(att => att.id === id);
+                if (existingIndex > -1) attendances[existingIndex] = newAtt;
+                else attendances.push(newAtt);
+                save(); render(); modal.classList.add('hidden');
+                App.helpers.showToast('Absensi berhasil disimpan!');
+            });
+
+            classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>' + Object.keys(App.masterData.siswa).map(c => `<option value="${c}">${c}</option>`).join('');
+            addBtn.addEventListener('click', () => openModal('create'));
+            classSelect.addEventListener('change', () => { if(classSelect.value) populateStudentList(classSelect.value); });
+            historyTableBody.addEventListener('click', (e) => {
+                if(e.target.classList.contains('show-btn')) openDetailModal(e.target.dataset.id);
+                if(e.target.classList.contains('edit-btn')) openModal('edit', e.target.dataset.id);
+                if(e.target.classList.contains('print-btn')) printAttendance(e.target.dataset.id);
+                if(e.target.classList.contains('delete-btn')) {
+                    if(!confirm('Yakin ingin hapus absensi ini?')) return;
+                    attendances = attendances.filter(a => a.id !== e.target.dataset.id);
+                    save(); render();
+                    App.helpers.showToast('Absensi dihapus!', 'error');
+                }
+            });
+            detailModal.addEventListener('click', (e) => {
+                if (e.target.id === 'printBtn') printAttendance(e.target.dataset.id);
+            });
+            render();
+        });
+    </script>
+</body>
+</html>

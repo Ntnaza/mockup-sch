@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPDB - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen PPDB</h1><p class="text-gray-600 mt-1">Kelola dan pantau semua calon siswa yang mendaftar.</p></header>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Total Pendaftar</p><p id="statTotal" class="text-3xl font-bold text-gray-900">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Lolos Verifikasi</p><p id="statVerified" class="text-3xl font-bold text-blue-600">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Diterima</p><p id="statAccepted" class="text-3xl font-bold text-green-600">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Ditolak</p><p id="statRejected" class="text-3xl font-bold text-red-600">0</p></div>
+            </div>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Pendaftar</h3>
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <select id="filterStatus" class="border rounded py-2 px-3 text-sm"><option value="">Semua Status</option><option value="Menunggu Verifikasi">Menunggu Verifikasi</option><option value="Lolos Verifikasi">Lolos Verifikasi</option><option value="Diterima">Diterima</option><option value="Ditolak">Ditolak</option></select>
+                        <button id="addApplicantBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm">Tambah</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">No. Pendaftaran</th><th class="px-6 py-3">Nama Calon Siswa</th><th class="px-6 py-3">Asal Sekolah</th><th class="px-6 py-3">Jalur</th><th class="px-6 py-3">Status</th><th class="px-6 py-3">Aksi</th></tr></thead><tbody id="applicantTableBody"></tbody></table></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for this page -->
+    <div id="ppdb-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"><div class="p-6 border-b flex justify-between items-center"><h3 id="modalTitle" class="text-2xl font-bold">Detail Calon Siswa</h3><button class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div><div class="p-6 overflow-y-auto flex-grow space-y-6"><div><h4 class="font-bold text-lg mb-2 text-gray-800 border-b pb-2">Data Diri</h4><div id="dataDiri" class="grid grid-cols-2 gap-4 text-sm text-gray-700"></div></div><div><h4 class="font-bold text-lg mb-2 text-gray-800 border-b pb-2">Data Orang Tua</h4><div id="dataOrangTua" class="grid grid-cols-2 gap-4 text-sm text-gray-700"></div></div><div><h4 class="font-bold text-lg mb-2 text-gray-800 border-b pb-2">Berkas Pendukung</h4><ul id="berkasList" class="space-y-2 text-sm"></ul></div></div><div id="modalActionFooter" class="p-4 border-t bg-gray-50 flex items-center justify-end space-x-3"></div></div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js"></script>
+<script src="../assets/sidebar-sub.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('applicantTableBody');
+            const modal = document.getElementById('ppdb-modal');
+            const filterStatus = document.getElementById('filterStatus');
+            const addBtn = document.getElementById('addApplicantBtn');
+            
+            const KEY = 'ppdbApplicants';
+            const getInitialData = () => [{id: 'PPDB2025001', nama: 'Citra Amelia', asalSekolah: 'SMP Negeri 1 Bandung', jalur: 'Prestasi', status: 'Diterima', dataDiri: { 'Nama Lengkap': 'Citra Amelia', 'NISN': '0081234567', 'Tempat, Tanggal Lahir': 'Bandung, 10-05-2010', 'Alamat': 'Jl. Merdeka No. 10' }, dataOrangTua: { 'Nama Ayah': 'Bambang S.', 'Pekerjaan Ayah': 'Wiraswasta', 'Nama Ibu': 'Rina M.', 'Pekerjaan Ibu': 'Ibu Rumah Tangga' }, berkas: ['Kartu Keluarga.pdf', 'Akta Kelahiran.pdf', 'Ijazah SMP.pdf', 'Sertifikat Lomba.pdf']}, {id: 'PPDB2025002', nama: 'Budi Hartono', asalSekolah: 'SMP Harapan Bangsa', jalur: 'Zonasi', status: 'Menunggu Verifikasi', dataDiri: { 'Nama Lengkap': 'Budi Hartono', 'NISN': '0087654321', 'Tempat, Tanggal Lahir': 'Cimahi, 12-01-2010', 'Alamat': 'Jl. Pasteur No. 15' }, dataOrangTua: { 'Nama Ayah': 'Haryanto', 'Pekerjaan Ayah': 'Pegawai Swasta', 'Nama Ibu': 'Siti Aminah', 'Pekerjaan Ibu': 'Guru' }, berkas: ['Kartu Keluarga.pdf', 'Akta Kelahiran.pdf', 'Surat Keterangan Lulus.pdf']}, {id: 'PPDB2025003', nama: 'Dewi Lestari', asalSekolah: 'SMP Pelita Jaya', jalur: 'Afirmasi', status: 'Lolos Verifikasi', dataDiri: { 'Nama Lengkap': 'Dewi Lestari', 'NISN': '0089988776', 'Tempat, Tanggal Lahir': 'Bandung, 25-08-2010', 'Alamat': 'Jl. Kopo No. 200' }, dataOrangTua: { 'Nama Ayah': 'Suparjo', 'Pekerjaan Ayah': 'Buruh Harian', 'Nama Ibu': 'Wati', 'Pekerjaan Ibu': 'Asisten Rumah Tangga' }, berkas: ['Kartu Keluarga.pdf', 'Akta Kelahiran.pdf', 'Ijazah SMP.pdf', 'Kartu KIP.pdf']}, {id: 'PPDB2025004', nama: 'Agung Setiawan', asalSekolah: 'SMP Negeri 5 Bandung', jalur: 'Prestasi', status: 'Ditolak', dataDiri: { 'Nama Lengkap': 'Agung Setiawan', 'NISN': '0081122334', 'Tempat, Tanggal Lahir': 'Jakarta, 01-02-2010', 'Alamat': 'Jl. Dago Atas No. 50' }, dataOrangTua: { 'Nama Ayah': 'Joko Widodo', 'Pekerjaan Ayah': 'Pengusaha', 'Nama Ibu': 'Sri Mulyani', 'Pekerjaan Ibu': 'Dokter' }, berkas: ['Kartu Keluarga.pdf', 'Akta Kelahiran.pdf', 'Ijazah SMP.pdf']}];
+            let applicants = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(applicants));
+
+            const getStatusBadge = (status) => {
+                const styles = {'Menunggu Verifikasi': 'bg-yellow-100 text-yellow-800', 'Lolos Verifikasi': 'bg-blue-100 text-blue-800', 'Diterima': 'bg-green-100 text-green-800', 'Ditolak': 'bg-red-100 text-red-800'};
+                return `<span class="px-2 py-1 text-xs font-medium rounded-full ${styles[status] || ''}">${status}</span>`;
+            };
+            const render = () => {
+                tableBody.innerHTML = '';
+                const filtered = applicants.filter(app => !filterStatus.value || app.status === filterStatus.value);
+                if (filtered.length === 0) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Tidak ada data.</td></tr>`; return; }
+                filtered.forEach(app => {
+                    tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-medium text-gray-900">${app.id}</td><td class="px-6 py-4">${app.nama}</td><td class="px-6 py-4">${app.asalSekolah}</td><td class="px-6 py-4">${app.jalur}</td><td class="px-6 py-4">${getStatusBadge(app.status)}</td><td class="px-6 py-4 flex space-x-3"><button class="detail-btn font-medium text-blue-600 hover:underline" data-id="${app.id}">Detail</button><button class="delete-btn font-medium text-red-600 hover:underline" data-id="${app.id}">Hapus</button></td></tr>`;
+                });
+                document.getElementById('statTotal').textContent = applicants.length;
+                document.getElementById('statVerified').textContent = applicants.filter(a => a.status === 'Lolos Verifikasi').length;
+                document.getElementById('statAccepted').textContent = applicants.filter(a => a.status === 'Diterima').length;
+                document.getElementById('statRejected').textContent = applicants.filter(a => a.status === 'Ditolak').length;
+            };
+            
+            const openDetailModal = (id) => {
+                const app = applicants.find(a => a.id === id);
+                document.getElementById('modalTitle').textContent = `Detail: ${app.nama}`;
+                const renderData = (containerId, data) => {
+                    const container = document.getElementById(containerId);
+                    container.innerHTML = '';
+                    for(const [key, value] of Object.entries(data)){ container.innerHTML += `<div class="col-span-2 sm:col-span-1"><p class="font-semibold text-gray-600">${key}</p><p>${value}</p></div>`; }
+                };
+                renderData('dataDiri', app.dataDiri);
+                renderData('dataOrangTua', app.dataOrangTua);
+                document.getElementById('berkasList').innerHTML = app.berkas.map(b => `<li class="flex items-center text-blue-600"><ion-icon name="document-attach-outline" class="mr-2"></ion-icon><a href="#" class="hover:underline">${b}</a></li>`).join('');
+                const footer = document.getElementById('modalActionFooter');
+                footer.dataset.id = id;
+                if (app.status === 'Menunggu Verifikasi') footer.innerHTML = `<button data-action="Lolos Verifikasi" class="action-btn bg-blue-500 text-white px-4 py-2 rounded-lg">Verifikasi Berkas</button>`;
+                else if (app.status === 'Lolos Verifikasi') footer.innerHTML = `<button data-action="Ditolak" class="action-btn bg-red-500 text-white px-4 py-2 rounded-lg">Tolak</button><button data-action="Diterima" class="action-btn bg-green-500 text-white px-4 py-2 rounded-lg">Terima Calon Siswa</button>`;
+                else footer.innerHTML = `<p class="text-sm text-gray-600">Proses selesai.</p>`;
+                modal.classList.remove('hidden');
+            };
+            
+            tableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('detail-btn')) openDetailModal(e.target.dataset.id);
+                if (e.target.classList.contains('delete-btn')) {
+                    if (!confirm(`Hapus data pendaftar No. ${e.target.dataset.id}?`)) return;
+                    applicants = applicants.filter(a => a.id !== e.target.dataset.id);
+                    save(); render();
+                    App.helpers.showToast('Data pendaftar dihapus!', 'error');
+                }
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target.classList.contains('action-btn')) {
+                    const id = e.target.parentElement.dataset.id;
+                    const newStatus = e.target.dataset.action;
+                    if (!confirm(`Ubah status menjadi "${newStatus}"?`)) return;
+                    applicants.find(a => a.id === id).status = newStatus;
+                    save(); render(); modal.classList.add('hidden');
+                    App.helpers.showToast(`Status berhasil diubah menjadi ${newStatus}!`);
+                }
+            });
+
+            addBtn.addEventListener('click', () => alert('Fungsi Tambah Pendaftar hanya demo.'));
+            filterStatus.addEventListener('change', render);
+            render();
+        });
+    </script>
+</body>
+</html>

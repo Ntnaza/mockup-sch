@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Master Data Siswa</h1>
+                <p class="text-gray-600 mt-1">Kelola data seluruh siswa aktif di sekolah.</p>
+            </header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Siswa</h3>
+                    <button id="addBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Data
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">NISN</th>
+                                <th scope="col" class="px-6 py-3">Nama Siswa</th>
+                                <th scope="col" class="px-6 py-3">Kelas</th>
+                                <th scope="col" class="px-6 py-3">Status</th>
+                                <th scope="col" class="px-6 py-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="data-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-4">Tambah Siswa Baru</h3>
+            <form id="dataForm">
+                <input type="hidden" id="dataId">
+                <div class="mb-4">
+                    <label for="nisn" class="block text-gray-700 text-sm font-bold mb-2">NISN</label>
+                    <input type="text" id="nisn" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="e.g., 0081234567" required>
+                </div>
+                <div class="mb-4">
+                    <label for="namaSiswa" class="block text-gray-700 text-sm font-bold mb-2">Nama Lengkap</label>
+                    <input type="text" id="namaSiswa" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" placeholder="e.g., Ahmad Fauzi" required>
+                </div>
+                <div class="mb-4">
+                    <label for="kelas" class="block text-gray-700 text-sm font-bold mb-2">Kelas</label>
+                    <select id="kelas" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                        <!-- Opsi kelas akan diisi oleh JS -->
+                    </select>
+                </div>
+                 <div class="mb-4">
+                    <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+                    <select id="status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Lulus">Lulus</option>
+                        <option value="Pindah">Pindah</option>
+                        <option value="Dikeluarkan">Dikeluarkan</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-end pt-4">
+                    <button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button>
+                    <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js"></script>
+    <script src="../assets/sidebar-sub.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBtn = document.getElementById('addBtn');
+            const modal = document.getElementById('data-modal');
+            const form = document.getElementById('dataForm');
+            const tableBody = document.getElementById('tableBody');
+            const modalTitle = document.getElementById('modalTitle');
+            const idInput = document.getElementById('dataId');
+            const kelasSelect = document.getElementById('kelas');
+            
+            const KEY = 'schoolStudents';
+            const getInitialData = () => [
+                { id: 'S01', nisn: '0081234567', nama: 'Ahmad Fauzi', kelas: '10 IPA 1', status: 'Aktif' },
+                { id: 'S02', nisn: '0087654321', nama: 'Budi Santoso', kelas: '10 IPA 1', status: 'Aktif' },
+                { id: 'S03', nisn: '0091122334', nama: 'Fajar Nugraha', kelas: '11 IPS 2', status: 'Aktif' },
+                { id: 'S04', nisn: '0075566778', nama: 'Kartika Putri', kelas: '12 Bahasa', status: 'Lulus' },
+            ];
+            let students = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(students));
+
+            const getStatusBadge = (status) => {
+                const styles = {
+                    'Aktif': 'bg-green-100 text-green-800',
+                    'Lulus': 'bg-blue-100 text-blue-800',
+                    'Pindah': 'bg-yellow-100 text-yellow-800',
+                    'Dikeluarkan': 'bg-red-100 text-red-800',
+                };
+                return `<span class="px-2 py-1 text-xs font-medium rounded-full ${styles[status] || 'bg-gray-100 text-gray-800'}">${status}</span>`;
+            };
+
+            const render = () => {
+                tableBody.innerHTML = '';
+                if (students.length === 0) { tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4">Belum ada data siswa.</td></tr>`; return; }
+                students.forEach(student => {
+                    tableBody.innerHTML += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">${student.nisn}</td>
+                            <td class="px-6 py-4">${student.nama}</td>
+                            <td class="px-6 py-4">${student.kelas}</td>
+                            <td class="px-6 py-4">${getStatusBadge(student.status)}</td>
+                            <td class="px-6 py-4 flex space-x-3 text-sm">
+                                <button class="edit-btn font-medium text-blue-600 hover:underline" data-id="${student.id}">Edit</button>
+                                <button class="delete-btn font-medium text-red-600 hover:underline" data-id="${student.id}">Hapus</button>
+                            </td>
+                        </tr>`;
+                });
+            };
+
+            const openModal = (mode = 'create', id = null) => {
+                form.reset();
+                if (mode === 'create') {
+                    modalTitle.textContent = 'Tambah Siswa Baru';
+                    idInput.value = '';
+                } else {
+                    modalTitle.textContent = 'Edit Data Siswa';
+                    const student = students.find(item => item.id === id);
+                    idInput.value = student.id;
+                    document.getElementById('nisn').value = student.nisn;
+                    document.getElementById('namaSiswa').value = student.nama;
+                    document.getElementById('kelas').value = student.kelas;
+                    document.getElementById('status').value = student.status;
+                }
+                modal.classList.remove('hidden');
+            };
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = {
+                    id: idInput.value || `S${Date.now()}`,
+                    nisn: document.getElementById('nisn').value,
+                    nama: document.getElementById('namaSiswa').value,
+                    kelas: document.getElementById('kelas').value,
+                    status: document.getElementById('status').value,
+                };
+                if (idInput.value) {
+                    const index = students.findIndex(s => s.id === formData.id);
+                    students[index] = formData;
+                } else {
+                    students.push(formData);
+                }
+                save(); render(); modal.classList.add('hidden');
+                App.helpers.showToast('Data siswa berhasil disimpan!');
+            });
+
+            tableBody.addEventListener('click', (e) => {
+                const id = e.target.dataset.id;
+                if (e.target.classList.contains('edit-btn')) openModal('edit', id);
+                if (e.target.classList.contains('delete-btn')) {
+                    if (confirm('Yakin ingin hapus data siswa ini?')) {
+                        students = students.filter(s => s.id !== id);
+                        save(); render();
+                        App.helpers.showToast('Data berhasil dihapus!', 'error');
+                    }
+                }
+            });
+            
+            // Isi dropdown kelas dari Master Data
+            kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>' + Object.keys(App.masterData.siswa).map(c => `<option value="${c}">${c}</option>`).join('');
+
+            addBtn.addEventListener('click', () => openModal('create'));
+            render();
+        });
+    </script>
+</body>
+</html>

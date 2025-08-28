@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelanggaran Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen Pelanggaran Siswa</h1><p class="text-gray-600 mt-1">Catat, lihat, dan kelola semua data pelanggaran siswa secara terpusat.</p></header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold text-gray-800">Daftar Pelanggaran</h3><button id="addViolationBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"><ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Data</button></div>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Nama Siswa</th><th scope="col" class="px-6 py-3">Kelas</th><th scope="col" class="px-6 py-3">Jenis Pelanggaran</th><th scope="col" class="px-6 py-3">Poin</th><th scope="col" class="px-6 py-3">Tanggal</th><th scope="col" class="px-6 py-3">Aksi</th></tr></thead><tbody id="violationTableBody"></tbody></table></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for this page -->
+    <div id="pelanggaran-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 id="modalTitle" class="text-2xl font-bold mb-4">Tambah Pelanggaran Baru</h3><form id="violationForm"><input type="hidden" id="violationId"><div class="mb-4"><label for="studentName" class="block text-gray-700 text-sm font-bold mb-2">Nama Siswa:</label><input type="text" id="studentName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="mb-4"><label for="studentClass" class="block text-gray-700 text-sm font-bold mb-2">Kelas:</label><input type="text" id="studentClass" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="mb-4"><label for="violationType" class="block text-gray-700 text-sm font-bold mb-2">Jenis Pelanggaran:</label><input type="text" id="violationType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="grid grid-cols-2 gap-4 mb-6"><div><label for="points" class="block text-gray-700 text-sm font-bold mb-2">Poin:</label><input type="number" id="points" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div><label for="date" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label><input type="date" id="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div></div><div class="flex items-center justify-end"><button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button><button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan</button></div></form></div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js"></script>
+<script src="../assets/sidebar-sub.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBtn = document.getElementById('addViolationBtn');
+            const modal = document.getElementById('pelanggaran-modal');
+            const form = document.getElementById('violationForm');
+            const tableBody = document.getElementById('violationTableBody');
+            const modalTitle = document.getElementById('modalTitle');
+            const idInput = document.getElementById('violationId');
+            
+            const KEY = 'schoolViolations';
+            const getInitialData = () => [{id: '1', name: 'Budi Santoso', class: '10 IPA 1', type: 'Terlambat', points: '5', date: '2025-08-20'}, {id: '2', name: 'Ani Lestari', class: '11 IPS 2', type: 'Seragam tidak lengkap', points: '10', date: '2025-08-22'}];
+            let violations = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(violations));
+
+            const render = () => {
+                tableBody.innerHTML = '';
+                if (violations.length === 0) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Belum ada data.</td></tr>`; return; }
+                violations.forEach(v => {
+                    tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-medium text-gray-900">${v.name}</td><td class="px-6 py-4">${v.class}</td><td class="px-6 py-4">${v.type}</td><td class="px-6 py-4">${v.points}</td><td class="px-6 py-4">${v.date}</td><td class="px-6 py-4 flex space-x-2"><button class="edit-btn text-blue-600 font-medium hover:underline" data-id="${v.id}">Edit</button><button class="delete-btn text-red-600 font-medium hover:underline" data-id="${v.id}">Hapus</button></td></tr>`;
+                });
+            };
+
+            const openModal = (mode = 'create', id = null) => {
+                form.reset();
+                if (mode === 'create') {
+                    modalTitle.textContent = 'Tambah Pelanggaran Baru';
+                    idInput.value = '';
+                    document.getElementById('date').valueAsDate = new Date();
+                } else {
+                    modalTitle.textContent = 'Edit Data Pelanggaran';
+                    const v = violations.find(item => item.id === id);
+                    idInput.value = v.id;
+                    document.getElementById('studentName').value = v.name;
+                    document.getElementById('studentClass').value = v.class;
+                    document.getElementById('violationType').value = v.type;
+                    document.getElementById('points').value = v.points;
+                    document.getElementById('date').value = v.date;
+                }
+                modal.classList.remove('hidden');
+            };
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = {
+                    id: idInput.value || Date.now().toString(),
+                    name: document.getElementById('studentName').value,
+                    class: document.getElementById('studentClass').value,
+                    type: document.getElementById('violationType').value,
+                    points: document.getElementById('points').value,
+                    date: document.getElementById('date').value,
+                };
+                if (idInput.value) {
+                    const index = violations.findIndex(v => v.id === formData.id);
+                    violations[index] = formData;
+                } else { violations.push(formData); }
+                save(); render(); modal.classList.add('hidden');
+                App.helpers.showToast('Data pelanggaran berhasil disimpan!');
+            });
+
+            tableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-btn')) openModal('edit', e.target.dataset.id);
+                if (e.target.classList.contains('delete-btn')) {
+                    if (confirm('Yakin ingin hapus data ini?')) {
+                        violations = violations.filter(v => v.id !== e.target.dataset.id);
+                        save(); render();
+                        App.helpers.showToast('Data berhasil dihapus!', 'error');
+                    }
+                }
+            });
+            
+            addBtn.addEventListener('click', () => openModal('create'));
+            render();
+        });
+    </script>
+</body>
+</html>

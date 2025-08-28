@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>.sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }</style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar akan dimuat di sini oleh sidebar.js -->
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Dashboard Utama</h1><p class="text-gray-600 mt-1">Selamat datang di Sistem Informasi Sekolah Terpadu.</p></header>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Total Pendaftar PPDB</p><p id="dashboard_stat_ppdb" class="text-3xl font-bold text-gray-900">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Total Tunggakan Keuangan</p><p id="dashboard_stat_keuangan" class="text-3xl font-bold text-red-600">Rp 0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Pengajuan Izin Guru (Pending)</p><p id="dashboard_stat_izin" class="text-3xl font-bold text-yellow-600">0</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg"><p class="text-gray-500">Tamu Masih di Lokasi</p><p id="dashboard_stat_tamu" class="text-3xl font-bold text-blue-600">0</p></div>
+            </div>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Akses Cepat</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="ppdb.html" class="text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-lg"><ion-icon name="people-outline" class="text-2xl text-blue-500"></ion-icon><p class="font-semibold mt-2">Lihat Pendaftar PPDB</p></a>
+                    <a href="keuangan.html" class="text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-lg"><ion-icon name="wallet-outline" class="text-2xl text-green-500"></ion-icon><p class="font-semibold mt-2">Cek Keuangan Siswa</p></a>
+                    <a href="absensi_siswa.html" class="text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-lg"><ion-icon name="checkmark-done-outline" class="text-2xl text-yellow-500"></ion-icon><p class="font-semibold mt-2">Input Absensi Siswa</p></a>
+                    <a href="akademik.html" class="text-left p-4 bg-gray-50 hover:bg-gray-100 rounded-lg"><ion-icon name="book-outline" class="text-2xl text-purple-500"></ion-icon><p class="font-semibold mt-2">Kelola Nilai</p></a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/app.js"></script>
+<script src="assets/sidebar.js"></script>
+    <script>
+        // Logika khusus untuk halaman dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            const ppdbData = JSON.parse(localStorage.getItem('ppdbApplicants')) || [];
+            const financeData = JSON.parse(localStorage.getItem('schoolFinanceData')) || [];
+            const leaveRequests = JSON.parse(localStorage.getItem('teacherLeaveRequests')) || [];
+            const guestLog = JSON.parse(localStorage.getItem('schoolGuestLog')) || [];
+            
+            document.getElementById('dashboard_stat_ppdb').textContent = ppdbData.length;
+            
+            let totalOutstanding = 0;
+            if(financeData.length > 0) {
+                financeData.forEach(student => {
+                    const totalTagihan = student.tagihan.reduce((sum, t) => sum + t.jumlah, 0);
+                    const totalTerbayar = student.pembayaran.reduce((sum, p) => sum + p.jumlah, 0);
+                    totalOutstanding += (totalTagihan - totalTerbayar);
+                });
+            }
+            document.getElementById('dashboard_stat_keuangan').textContent = App.helpers.formatRupiah(totalOutstanding);
+            document.getElementById('dashboard_stat_izin').textContent = leaveRequests.filter(r => r.status === 'Pending').length;
+            document.getElementById('dashboard_stat_tamu').textContent = guestLog.filter(g => g.tanggal === App.helpers.getToday() && g.status === 'Masih di Lokasi').length;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen Keuangan Sekolah</h1><p class="text-gray-600 mt-1">Pantau status pembayaran, catat transaksi, dan lihat rekapitulasi keuangan.</p></header>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-center"><div class="bg-green-100 p-3 rounded-full"><ion-icon name="cash-outline" class="text-3xl text-green-600"></ion-icon></div><div class="ml-4"><p class="text-gray-500">Total Pemasukan</p><p id="totalIncome" class="text-2xl font-bold text-gray-900">Rp 0</p></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-center"><div class="bg-red-100 p-3 rounded-full"><ion-icon name="document-text-outline" class="text-3xl text-red-600"></ion-icon></div><div class="ml-4"><p class="text-gray-500">Total Tunggakan</p><p id="totalOutstanding" class="text-2xl font-bold text-gray-900">Rp 0</p></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-lg flex items-center"><div class="bg-blue-100 p-3 rounded-full"><ion-icon name="checkmark-circle-outline" class="text-3xl text-blue-600"></ion-icon></div><div class="ml-4"><p class="text-gray-500">Siswa Lunas</p><p id="paidOffStudents" class="text-2xl font-bold text-gray-900">0 / 0</p></div></div>
+            </div>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">Status Pembayaran Siswa</h3>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Nama Siswa</th><th scope="col" class="px-6 py-3">Kelas</th><th scope="col" class="px-6 py-3">Total Tagihan</th><th scope="col" class="px-6 py-3">Total Terbayar</th><th scope="col" class="px-6 py-3">Sisa Tunggakan</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3">Aksi</th></tr></thead><tbody id="studentFinanceTableBody"></tbody></table></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for this page -->
+    <div id="keuangan-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col"><div class="p-6 border-b flex justify-between items-center"><div><h3 id="modalTitle" class="text-2xl font-bold">Detail Pembayaran</h3><p id="modalStudentInfo" class="text-gray-600"></p></div><button class="close-modal-btn text-gray-500 hover:text-gray-800 text-3xl">&times;</button></div><div class="p-6 overflow-y-auto flex-grow grid grid-cols-1 md:grid-cols-3 gap-6"><div class="md:col-span-2"><h4 class="font-bold text-lg mb-4">Riwayat Pembayaran</h4><div id="paymentHistoryContainer" class="overflow-auto" style="max-height: 400px;"></div></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-lg mb-4">Catat Pembayaran Baru</h4><form id="newPaymentForm"><input type="hidden" id="currentStudentId"><input type="hidden" id="paymentId"><div class="mb-4"><label for="paymentType" class="block text-gray-700 text-sm font-bold mb-2">Jenis Pembayaran:</label><select id="paymentType" class="shadow border rounded w-full py-2 px-3" required></select></div><div class="mb-4"><label for="paymentAmount" class="block text-gray-700 text-sm font-bold mb-2">Jumlah Bayar (Rp):</label><input type="number" id="paymentAmount" class="shadow border rounded w-full py-2 px-3" required></div><div class="mb-4"><label for="paymentMethod" class="block text-gray-700 text-sm font-bold mb-2">Metode Bayar:</label><select id="paymentMethod" class="shadow border rounded w-full py-2 px-3" required><option>Transfer Bank</option><option>Cash</option><option>QRIS</option></select></div><div class="mb-4"><label for="paymentDate" class="block text-gray-700 text-sm font-bold mb-2">Tanggal Bayar:</label><input type="date" id="paymentDate" class="shadow border rounded w-full py-2 px-3" required></div><button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan Pembayaran</button></form></div></div></div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('studentFinanceTableBody');
+            const modal = document.getElementById('keuangan-modal');
+            const form = document.getElementById('newPaymentForm');
+            
+            const KEY = 'schoolFinanceData';
+            const getInitialData = () => [{id: '101', nama: 'Budi Santoso', kelas: '10 IPA 1', tagihan: [{ id: 't1', deskripsi: 'SPP Agustus 2025', jumlah: 500000 }, { id: 't2', deskripsi: 'Uang Buku Semester 1', jumlah: 750000 }, { id: 't3', deskripsi: 'Uang Kegiatan 17an', jumlah: 50000 }], pembayaran: [{ id: Date.now() + 1, tanggal: '2025-08-05', deskripsi: 'SPP Agustus 2025', jumlah: 500000, metode: 'Transfer Bank' }]}, {id: '102', nama: 'Ani Lestari', kelas: '11 IPS 2', tagihan: [{ id: 't4', deskripsi: 'SPP Agustus 2025', jumlah: 550000 }, { id: 't5', deskripsi: 'Uang Study Tour', jumlah: 1200000 },], pembayaran: [{ id: Date.now() + 2, tanggal: '2025-08-10', deskripsi: 'Uang Study Tour', jumlah: 1200000, metode: 'Cash' }, { id: Date.now() + 3, tanggal: '2025-08-10', deskripsi: 'SPP Agustus 2025', jumlah: 550000, metode: 'Cash' }]}, {id: '103', nama: 'Eko Prasetyo', kelas: '12 Bahasa', tagihan: [{ id: 't6', deskripsi: 'SPP Agustus 2025', jumlah: 525000 }, { id: 't7', deskripsi: 'Uang Buku LKS', jumlah: 250000 },], pembayaran: []}];
+            let financeData = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(financeData));
+
+            const calculateTotals = (student) => {
+                const totalTagihan = student.tagihan.reduce((sum, t) => sum + t.jumlah, 0);
+                const totalTerbayar = student.pembayaran.reduce((sum, p) => sum + p.jumlah, 0);
+                return { totalTagihan, totalTerbayar, sisaTunggakan: totalTagihan - totalTerbayar };
+            };
+            const render = () => {
+                tableBody.innerHTML = '';
+                let totalIncome = 0, totalBills = 0, paidOffCount = 0;
+                financeData.forEach(student => {
+                    const { totalTagihan, totalTerbayar, sisaTunggakan } = calculateTotals(student);
+                    totalIncome += totalTerbayar;
+                    totalBills += totalTagihan;
+                    if (sisaTunggakan <= 0) paidOffCount++;
+                    const statusLunas = sisaTunggakan <= 0;
+                    const statusClass = statusLunas ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                    tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-medium text-gray-900">${student.nama}</td><td class="px-6 py-4">${student.kelas}</td><td class="px-6 py-4">${App.helpers.formatRupiah(totalTagihan)}</td><td class="px-6 py-4">${App.helpers.formatRupiah(totalTerbayar)}</td><td class="px-6 py-4 font-semibold ${sisaTunggakan > 0 ? 'text-red-600' : 'text-gray-800'}">${App.helpers.formatRupiah(sisaTunggakan)}</td><td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">${statusLunas ? 'Lunas' : 'Belum Lunas'}</span></td><td class="px-6 py-4"><button class="detail-btn font-medium text-blue-600 hover:underline" data-id="${student.id}">Lihat Detail</button></td></tr>`;
+                });
+                document.getElementById('totalIncome').textContent = App.helpers.formatRupiah(totalIncome);
+                document.getElementById('totalOutstanding').textContent = App.helpers.formatRupiah(totalBills - totalIncome);
+                document.getElementById('paidOffStudents').textContent = `${paidOffCount} / ${financeData.length}`;
+            };
+            
+            const renderPaymentHistory = (studentId) => {
+                const student = financeData.find(s => s.id === studentId);
+                const container = document.getElementById('paymentHistoryContainer');
+                container.innerHTML = '';
+                if (student.pembayaran.length === 0) { container.innerHTML = '<p class="text-center text-gray-500">Belum ada riwayat pembayaran.</p>'; return; }
+                const sortedPayments = [...student.pembayaran].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+                sortedPayments.forEach(p => {
+                    container.innerHTML += `<div class="border rounded-lg p-3 mb-3 bg-white"><div class="flex justify-between items-start"><div><p class="font-bold text-gray-800">${p.deskripsi}</p><p class="text-sm text-gray-500">${p.tanggal} • ${p.metode}</p></div><p class="font-semibold text-green-600 text-lg">${App.helpers.formatRupiah(p.jumlah)}</p></div><div class="flex justify-end items-center mt-2 space-x-3 text-xs"><button class="edit-payment-btn font-medium text-blue-600 hover:underline" data-student-id="${student.id}" data-payment-id="${p.id}">Edit</button><button class="delete-payment-btn font-medium text-red-600 hover:underline" data-student-id="${student.id}" data-payment-id="${p.id}">Hapus</button></div></div>`;
+                });
+            };
+
+            const openDetailModal = (studentId) => {
+                const student = financeData.find(s => s.id === studentId);
+                document.getElementById('modalStudentInfo').textContent = `${student.nama} - ${student.kelas}`;
+                document.getElementById('currentStudentId').value = studentId;
+                form.reset();
+                document.getElementById('paymentId').value = '';
+                document.getElementById('paymentDate').valueAsDate = new Date();
+                const paymentTypeSelect = document.getElementById('paymentType');
+                paymentTypeSelect.innerHTML = '';
+                student.tagihan.forEach(t => {
+                    const isPaid = student.pembayaran.some(p => p.deskripsi === t.deskripsi && p.jumlah >= t.jumlah);
+                    if (!isPaid) paymentTypeSelect.innerHTML += `<option value="${t.deskripsi}" data-amount="${t.jumlah}">${t.deskripsi}</option>`;
+                });
+                const autoFillAmount = () => {
+                    const selectedOption = paymentTypeSelect.options[paymentTypeSelect.selectedIndex];
+                    document.getElementById('paymentAmount').value = selectedOption ? selectedOption.dataset.amount : '';
+                };
+                paymentTypeSelect.onchange = autoFillAmount;
+                autoFillAmount();
+                renderPaymentHistory(studentId);
+                modal.classList.remove('hidden');
+            };
+
+            tableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('detail-btn')) openDetailModal(e.target.dataset.id);
+            });
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const studentId = document.getElementById('currentStudentId').value;
+                const paymentId = document.getElementById('paymentId').value;
+                const student = financeData.find(s => s.id === studentId);
+                const paymentData = {
+                    id: paymentId || Date.now().toString(),
+                    tanggal: document.getElementById('paymentDate').value,
+                    deskripsi: document.getElementById('paymentType').value,
+                    jumlah: parseInt(document.getElementById('paymentAmount').value),
+                    metode: document.getElementById('paymentMethod').value,
+                };
+                if (paymentId) {
+                    const pIndex = student.pembayaran.findIndex(p => p.id.toString() === paymentId);
+                    student.pembayaran[pIndex] = paymentData;
+                } else { student.pembayaran.push(paymentData); }
+                save(); render(); renderPaymentHistory(studentId); form.reset();
+                document.getElementById('paymentDate').valueAsDate = new Date();
+                App.helpers.showToast('Pembayaran berhasil disimpan!');
+            });
+
+            document.getElementById('paymentHistoryContainer').addEventListener('click', (e) => {
+                const { studentId, paymentId } = e.target.dataset;
+                if(!studentId || !paymentId) return;
+                const student = financeData.find(s => s.id === studentId);
+                if (e.target.classList.contains('edit-payment-btn')) {
+                    const payment = student.pembayaran.find(p => p.id.toString() === paymentId);
+                    document.getElementById('paymentId').value = payment.id;
+                    document.getElementById('paymentType').value = payment.deskripsi;
+                    document.getElementById('paymentAmount').value = payment.jumlah;
+                    document.getElementById('paymentMethod').value = payment.metode;
+                    document.getElementById('paymentDate').value = payment.tanggal;
+                }
+                if (e.target.classList.contains('delete-payment-btn')) {
+                    if (!confirm('Yakin ingin hapus catatan pembayaran ini?')) return;
+                    student.pembayaran = student.pembayaran.filter(p => p.id.toString() !== paymentId);
+                    save(); render(); renderPaymentHistory(studentId);
+                    App.helpers.showToast('Catatan pembayaran dihapus!', 'error');
+                }
+            });
+            render();
+        });
+    </script>
+</body>
+</html>
