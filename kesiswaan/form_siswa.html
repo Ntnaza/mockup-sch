@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Data Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .tab-link { 
+            transition: all 0.2s ease; 
+            padding: 0.75rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+        }
+        .tab-link.active { 
+            border-bottom-color: #3b82f6; 
+            color: #3b82f6; 
+            font-weight: 600; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 flex flex-col p-6 md:p-10 overflow-y-auto">
+            <header class="flex-shrink-0 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 id="formTitle" class="text-3xl font-bold text-gray-900">Formulir Data Siswa</h1>
+                    <p class="text-gray-600 mt-1">Lengkapi semua data siswa pada tab di bawah ini.</p>
+                </div>
+                <div>
+                    <a href="data_siswa.html" class="bg-white hover:bg-gray-100 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Batal</a>
+                    <button id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ml-2 transition">Simpan</button>
+                </div>
+            </header>
+
+            <div class="mt-8 bg-white rounded-xl shadow-lg flex-grow flex flex-col">
+                <div class="border-b border-gray-200 flex-shrink-0">
+                    <nav id="form-tabs" class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
+                        <a class="tab-link active" data-src="form-tabs/pribadi.html">Pribadi</a>
+                        <a class="tab-link" data-src="form-tabs/tempat_tinggal.html">Tempat Tinggal</a>
+                        <a class="tab-link" data-src="form-tabs/jasmani.html">Jasmani & Riwayat Penyakit</a>
+                        <a class="tab-link" data-src="form-tabs/pendidikan.html">Pendidikan</a>
+                        <a class="tab-link" data-src="form-tabs/ortu.html">Ortu/Wali</a>
+                        <a class="tab-link" data-src="form-tabs/intelegensi.html">Intelegensi</a>
+                        <a class="tab-link" data-src="form-tabs/prestasi.html">Prestasi</a>
+                    </nav>
+                </div>
+
+                <div class="p-4 flex-grow">
+                    <iframe id="form-tab-content" src="form-tabs/pribadi.html" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const formTabs = document.getElementById('form-tabs');
+        const iframe = document.getElementById('form-tab-content');
+        
+        formTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.target.tagName === 'A') {
+                const src = e.target.dataset.src;
+                if (src) {
+                    iframe.src = src;
+                    document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+            }
+        });
+
+        // Logika Simpan bisa dikembangkan lebih lanjut untuk mengambil data dari iframe
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.addEventListener('click', () => {
+             App.helpers.showToast('Data siswa berhasil disimpan!');
+             setTimeout(() => { window.location.href = 'data_siswa.html'; }, 1500);
+        });
+    });
+    </script>
+</body>
+</html>

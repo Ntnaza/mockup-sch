@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        .table-input {
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+            width: 100%;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+        }
+        .table-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .table-th {
+            background-color: #f9fafb;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+        .table-td {
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+        }
+        .keterangan-td {
+            padding: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2 overflow-x-auto">
+        <table class="w-full border-collapse">
+            <thead>
+                <tr>
+                    <th class="table-th w-1/5">KETERANGAN</th>
+                    <th class="table-th w-1/5">AYAH</th>
+                    <th class="table-th w-1/5">IBU</th>
+                    <th class="table-th w-1/5">WALI LAKI-LAKI</th>
+                    <th class="table-th w-1/5">WALI PEREMPUAN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="keterangan-td">Nama</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">NIK</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Tempat lahir</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Tanggal lahir</td>
+                    <td class="table-td"><input type="date" class="table-input"></td>
+                    <td class="table-td"><input type="date" class="table-input"></td>
+                    <td class="table-td"><input type="date" class="table-input"></td>
+                    <td class="table-td"><input type="date" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Kewarganegaraan</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Pendidikan tertinggi</td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Pekerjaan</td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Penghasilan / bulan</td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Alamat</td>
+                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Telepon</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+                <tr>
+                    <td class="keterangan-td">Hubungan dengan peserta didik</td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" class="table-input"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

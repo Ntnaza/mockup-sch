@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <!-- Data Jasmani -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mb-6">
+            <div><label class="form-label">Berat badan pada waktu diterima (kg)</label><input type="number" id="beratBadan" class="form-input"></div>
+            <div><label class="form-label">Tinggi badan pada waktu diterima (cm)</label><input type="number" id="tinggiBadan" class="form-input"></div>
+            <div><label class="form-label">Kelainan jasmaniah/lainnya</label><input type="text" id="kelainan" class="form-input"></div>
+        </div>
+
+        <!-- Riwayat Penyakit -->
+        <div>
+            <h4 class="font-semibold text-gray-800 mb-2">Penyakit yang pernah diderita (sakit berat yang memerlukan perawatan khusus)</h4>
+            <div id="riwayat-penyakit-container" class="space-y-2">
+                <!-- Baris akan ditambahkan oleh JavaScript -->
+            </div>
+            <button id="tambah-penyakit-btn" type="button" class="mt-2 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-semibold">
+                <ion-icon name="add-circle-outline" class="w-5 h-5"></ion-icon>
+                Tambah Riwayat Penyakit
+            </button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('riwayat-penyakit-container');
+        const addBtn = document.getElementById('tambah-penyakit-btn');
+        let rowCount = 0;
+
+        function addRow() {
+            rowCount++;
+            const row = document.createElement('div');
+            row.className = 'grid grid-cols-12 gap-2 items-center';
+            row.innerHTML = `
+                <div class="col-span-1 text-center text-gray-500">${rowCount}</div>
+                <div class="col-span-3"><input type="text" placeholder="Jenis Penyakit" class="form-input"></div>
+                <div class="col-span-2"><input type="text" placeholder="Kelas" class="form-input"></div>
+                <div class="col-span-2"><input type="text" placeholder="Tahun" class="form-input"></div>
+                <div class="col-span-2"><input type="text" placeholder="Lama Sakit" class="form-input"></div>
+                <div class="col-span-2"><input type="text" placeholder="Keterangan" class="form-input"></div>
+            `;
+            container.appendChild(row);
+        }
+
+        addBtn.addEventListener('click', addRow);
+
+        // Tambah satu baris di awal
+        addRow();
+    });
+    </script>
+</body>
+</html>

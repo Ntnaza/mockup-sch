@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
+            <!-- Kolom 1 -->
+            <div class="space-y-4">
+                <div><label class="form-label">Kelas Aktif</label><select id="kelasAktif" class="form-input"><option value="">- Pilih -</option><option>10 IPA 1</option><option>11 IPS 2</option></select></div>
+                <div><label class="form-label">Kelas Diterima</label><input type="text" id="kelasDiterima" class="form-input bg-gray-100" readonly></div>
+                <div><label class="form-label">Tanggal Diterima</label><input type="date" id="tanggalDiterima" class="form-input"></div>
+            </div>
+
+            <!-- Kolom 2 -->
+            <div class="space-y-4">
+                <div><label class="form-label">Nomor Peserta Ujian Nasional</label><input type="text" id="noUn" class="form-input"></div>
+                <div><label class="form-label">Nama SMP/MTs/Paket B Sekolah Asal</label><input type="text" id="sekolahAsal" class="form-input"></div>
+            </div>
+
+            <!-- Kolom 3 -->
+            <div class="space-y-4">
+                <div><label class="form-label">Tahun Ijazah Sekolah Asal</label><select id="tahunIjazah" class="form-input"><option value="">- Pilih -</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+                <div><label class="form-label">Nomor Seri Ijazah Sekolah Asal</label><input type="text" id="noSeriIjazah" class="form-input"></div>
+            </div>
+            
+            <!-- Kolom 4 -->
+            <div class="space-y-4">
+                 <div><label class="form-label">Tahun SKHUN Sekolah Asal</label><select id="tahunSkhun" class="form-input"><option value="">- Pilih -</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+                 <div><label class="form-label">Nama SD/MI Sekolah Asal</label><input type="text" id="sdAsal" class="form-input"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

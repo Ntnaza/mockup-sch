@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        .table-th {
+            background-color: #f9fafb;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: #4b5563;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .table-td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-8">
+            <div><label class="form-label">Intelegensi (IQ)</label><input type="text" id="iq" class="form-input"></div>
+            <div><label class="form-label">Tanggal Tes IQ</label><input type="date" id="tanggalIq" class="form-input"></div>
+        </div>
+
+        <div>
+            <h4 class="form-label mb-2">Kepribadian</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th class="table-th w-10">NO</th>
+                            <th class="table-th w-1/2">ASPEK YANG DINILAI</th>
+                            <th class="table-th text-center">BAIK</th>
+                            <th class="table-th text-center">CUKUP</th>
+                            <th class="table-th text-center">KURANG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table-td text-center">1</td>
+                            <td class="table-td">Disiplin/ketertiban</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
+                        </tr>
+                        <tr>
+                            <td class="table-td text-center">2</td>
+                            <td class="table-td">Prakarsa/kreativitas</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
+                        </tr>
+                        <tr>
+                            <td class="table-td text-center">3</td>
+                            <td class="table-td">Tanggung jawab</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
+                        </tr>
+                        <tr>
+                            <td class="table-td text-center">4</td>
+                            <td class="table-td">Penyesuaian diri</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
+                        </tr>
+                        <tr>
+                            <td class="table-td text-center">5</td>
+                            <td class="table-td">Kemantapan emosi</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
+                        </tr>
+                        <tr>
+                            <td class="table-td text-center">6</td>
+                            <td class="table-td">Kerjasama</td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
+                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

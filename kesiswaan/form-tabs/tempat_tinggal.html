@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <!-- Kolom Kiri -->
+            <div class="space-y-4">
+                <div><label class="form-label">Alamat Jalan/Kp/Gg</label><input type="text" id="alamat" class="form-input"></div>
+                <div><label class="form-label">RT</label><input type="text" id="rt" class="form-input"></div>
+                <div><label class="form-label">RW</label><input type="text" id="rw" class="form-input"></div>
+                <div><label class="form-label">Kecamatan</label><select id="kecamatan" class="form-input"><option value="">- Pilih -</option></select></div>
+                <div><label class="form-label">Desa/Kelurahan</label><select id="desa" class="form-input"><option value="">- Pilih Kecamatan Terlebih Dahulu -</option></select></div>
+                <div><label class="form-label">Kode Pos</label><input type="text" id="kodePos" class="form-input"></div>
+                <div><label class="form-label">Kabupaten</label><select id="kabupaten" class="form-input"><option value="cianjur">Cianjur</option></select></div>
+                <div><label class="form-label">Provinsi</label><input type="text" id="provinsi" class="form-input bg-gray-100" value="Jawa Barat" readonly></div>
+            </div>
+
+            <!-- Kolom Kanan -->
+            <div class="space-y-4">
+                <div><label class="form-label">Telepon</label><input type="text" id="telepon" class="form-input"></div>
+                <div><label class="form-label">Selama bersekolah tinggal dengan</label><input type="text" id="tinggalDengan" class="form-input"></div>
+                <div><label class="form-label">Jarak dari tempat tinggal ke sekolah (KM)</label><select id="jarak" class="form-input"><option value="">- Pilih -</option><option value="<1">Kurang dari 1 KM</option><option value="1-3">1 - 3 KM</option><option value="3-5">3 - 5 KM</option><option value=">5">Lebih dari 5 KM</option></select></div>
+                <div><label class="form-label">Ke sekolah dengan (Mode Transportasi)</label><select id="transportasi" class="form-input"><option value="">- Pilih -</option><option value="jalan_kaki">Jalan Kaki</option><option value="angkutan_umum">Angkutan Umum</option><option value="kendaraan_pribadi">Kendaraan Pribadi</option><option value="antar_jemput">Antar Jemput Sekolah</option></select></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

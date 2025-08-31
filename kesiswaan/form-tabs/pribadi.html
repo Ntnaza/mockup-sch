@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Standar Styling untuk Form di dalam Iframe */
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="space-y-4">
+                <div class="space-y-3 text-center">
+                    <img id="previewFoto" src="https://placehold.co/300x400/e2e8f0/64748b?text=Foto+3x4" alt="Foto Siswa" class="w-40 h-52 mx-auto rounded-lg object-cover border-4 border-white shadow-md">
+                    <input type="file" id="foto" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                </div>
+                <div><label class="form-label">NIS</label><input type="text" id="nis" class="form-input"></div>
+                <div><label class="form-label">NISN</label><input type="text" id="nisn" class="form-input"></div>
+                <div><label class="form-label">NIK</label><input type="text" id="nik" class="form-input"></div>
+                <div><label class="form-label">Nomor Akte Kelahiran</label><input type="text" id="noAkte" class="form-input"></div>
+                <div><label class="form-label">Nomor Seri PIP</label><input type="text" id="noPip" class="form-input"></div>
+                <div><label class="form-label">PKH/KKS</label><input type="text" id="pkh" class="form-input"></div>
+                <div><label class="form-label">KPS</label><input type="text" id="kps" class="form-input"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div><label class="form-label">Nama Lengkap</label><input type="text" id="namaLengkap" class="form-input"></div>
+                <div><label class="form-label">Nama Panggilan</label><input type="text" id="panggilan" class="form-input"></div>
+                <div><label class="form-label">Jenis Kelamin</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="L" class="mr-2">Laki-laki</label><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="P" class="mr-2">Perempuan</label></div></div>
+                <div><label class="form-label">Tempat Lahir</label><input type="text" id="tempatLahir" class="form-input"></div>
+                <div><label class="form-label">Tanggal Lahir</label><input type="date" id="tglLahir" class="form-input"></div>
+                <div><label class="form-label">Agama</label><select id="agama" class="form-input"><option>Islam</option><option>Kristen</option><option>Katolik</option><option>Hindu</option><option>Buddha</option><option>Konghucu</option></select></div>
+                <div><label class="form-label">Kewarganegaraan</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="warga" value="WNI" class="mr-2">WNI</label><label class="inline-flex items-center"><input type="radio" name="warga" value="WNA" class="mr-2">WNA</label></div></div>
+                <div><label class="form-label">Golongan Darah</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="goldar" value="A">A</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="B">B</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="AB">AB</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="O">O</label></div></div>
+            </div>
+
+            <div class="space-y-4">
+                <div><label class="form-label">Bahasa Sehari-hari</label><input type="text" id="bahasa" class="form-input"></div>
+                <div><label class="form-label">Anak Ke</label><input type="number" id="anakKe" class="form-input"></div>
+                <div><label class="form-label">Jumlah Saudara Kandung</label><input type="number" id="jmlKandung" class="form-input"></div>
+                <div><label class="form-label">Jumlah Saudara Tiri</label><input type="number" id="jmlTiri" class="form-input"></div>
+                <div><label class="form-label">Jumlah Saudara Angkat</label><input type="number" id="jmlAngkat" class="form-input"></div>
+                <div><label class="form-label">Status dalam Keluarga</label><select id="statusKeluarga" class="form-input"><option>Anak Kandung</option><option>Anak Angkat</option><option>Anak Tiri</option></select></div>
+                <div><label class="form-label">Kategori Anak</label><div class="mt-2 space-y-2"><label class="block"><input type="radio" name="katAnak" value="Normal"> Tanpa Kategori</label><label class="block"><input type="radio" name="katAnak" value="Yatim"> Yatim</label><label class="block"><input type="radio" name="katAnak" value="Piatu"> Piatu</label><label class="block"><input type="radio" name="katAnak" value="Yatim Piatu"> Yatim Piatu</label></div></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
