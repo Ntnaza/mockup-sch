@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Semester - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Master Semester</h1>
+                <p class="text-gray-600 mt-1">Kelola data semester sekolah.</p>
+            </header>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Semester</h3>
+                </div>
+                
+                <div class="p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 mb-6">
+                    <p class="font-bold">Informasi:</p>
+                    <p>1. <span class="font-bold text-green-600">✅</span> adalah semester yang aktif</p>
+                    <p>2. Klik <span class="font-bold text-blue-600">🔄</span> untuk mengaktifkan semester</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">No</th>
+                                <th scope="col" class="px-6 py-3">Semester</th>
+                                <th scope="col" class="px-6 py-3">Keterangan</th>
+                                <th scope="col" class="px-6 py-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    
+    <script src="../assets/app.js"></script>
+    <script src="../assets/sidebar-sub.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('tableBody');
+            
+            const KEY = 'schoolSemesters';
+            const getInitialData = () => [
+                { id: '1', semester: 'Ganjil', keterangan: 'Semester 1, 3 dan 5', status: 'Aktif' },
+                { id: '2', semester: 'Genap', keterangan: 'Semester 2, 4 dan 6', status: 'Tidak Aktif' },
+            ];
+            let semesters = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
+            const save = () => localStorage.setItem(KEY, JSON.stringify(semesters));
+
+            const render = () => {
+                tableBody.innerHTML = '';
+                if (semesters.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4">Belum ada data.</td></tr>`;
+                    return;
+                }
+                
+                semesters.forEach((item, index) => {
+                    const statusIcon = item.status === 'Aktif' 
+                        ? `<ion-icon name="checkmark-circle" class="text-green-500 text-lg"></ion-icon>`
+                        : `<button class="activate-btn text-blue-500 hover:text-blue-700" data-id="${item.id}" title="Aktifkan"><ion-icon name="refresh-circle" class="text-lg"></ion-icon></button>`;
+                    
+                    tableBody.innerHTML += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">${index + 1}</td>
+                            <td class="px-6 py-4">${item.semester}</td>
+                            <td class="px-6 py-4">${item.keterangan || '-'}</td>
+                            <td class="px-6 py-4 text-lg">
+                                ${statusIcon}
+                            </td>
+                        </tr>`;
+                });
+            };
+
+            tableBody.addEventListener('click', (e) => {
+                const id = e.target.closest('button')?.dataset.id;
+                if (!id) return;
+                
+                if (e.target.closest('.activate-btn')) {
+                    if (confirm('Jadikan semester ini aktif? Status aktif sebelumnya akan dinonaktifkan.')) {
+                        semesters.forEach(s => s.status = 'Tidak Aktif');
+                        const semesterToActivate = semesters.find(s => s.id === id);
+                        if(semesterToActivate) {
+                            semesterToActivate.status = 'Aktif';
+                        }
+                        save(); 
+                        render();
+                        App.helpers.showToast('Status berhasil diaktifkan!');
+                    }
+                }
+            });
+            
+            render();
+        });
+    </script>
+</body>
+</html>

@@ -52,10 +52,12 @@ function buildSidebar() {
                         <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
                     </button>
                     <div class="sidebar-submenu">
-                        <a href="#" class="sidebar-link">Tahun Pelajaran</a>
-                        <a href="#" class="sidebar-link">Semester</a>
-                        <a href="#" class="sidebar-link">Mata Pelajaran</a>
-                        <a href="#" class="sidebar-link">Ekstrakurikuler</a>
+                        <a href="../akademik/tahun_pelajaran.html" class="sidebar-link">Tahun Pelajaran</a>
+                        <a href="../akademik/semester.html" class="sidebar-link">Semester</a>
+                        <a href="../akademik/program_keahlian.html" class="sidebar-link">Program Keahlian</a>
+                        <a href="../akademik/paket_keahlian.html" class="sidebar-link">Paket Keahlian</a>
+                        <a href="../akademik/mapel.html" class="sidebar-link">Mata Pelajaran</a>
+                        <a href="../akademik/ekstrakurikuler.html" class="sidebar-link">Ekstrakurikuler</a>
                     </div>
                 </div>
                 

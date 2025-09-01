@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Mata Pelajaran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <div class="flex justify-between items-center mt-2">
+                    <h1 class="text-3xl font-bold text-gray-900">Pengaturan Mata Pelajaran</h1>
+                    <div class="bg-green-500 text-white font-semibold py-2 px-4 rounded-full text-sm">
+                        Tapel: <span id="tapel-display"></span> | Semester: <span id="semester-display"></span>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="mt-8 flex flex-col md:flex-row gap-6">
+                
+                <div class="w-full md:w-1/3 bg-white p-6 rounded-lg shadow-lg h-fit">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Formulir</h3>
+                    <form id="dataForm">
+                        <input type="hidden" id="dataId">
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Tahun Pelajaran</label>
+                            <p id="form-tapel" class="text-gray-800 font-medium"></p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Semester Aktif</label>
+                            <p id="form-semester" class="text-gray-800 font-medium"></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="mataPelajaran" class="block text-gray-700 text-sm font-bold mb-2">Mata Pelajaran</label>
+                            <select id="mataPelajaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>- Pilih -</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="alias" class="block text-gray-700 text-sm font-bold mb-2">Mata Pelajaran (Alias)</label>
+                            <input type="text" id="alias" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="kelompokMataPelajaran" class="block text-gray-700 text-sm font-bold mb-2">Kelompok Mata Pelajaran</label>
+                            <select id="kelompokMataPelajaran" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>- Pilih -</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="programStudi" class="block text-gray-700 text-sm font-bold mb-2">Program Studi</label>
+                            <select id="programStudi" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+                                <option value="" disabled selected>- Pilih -</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="programKeahlian" class="block text-gray-700 text-sm font-bold mb-2">Program Keahlian</label>
+                            <select id="programKeahlian" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required disabled>
+                                <option value="" disabled selected>- Pilih -</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="tingkatKelas" class="block text-gray-700 text-sm font-bold mb-2">Tingkat Kelas</label>
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="tingkatKelas" value="10" class="form-checkbox h-4 w-4 text-blue-600">
+                                    <span class="ml-2 text-gray-700">Sepuluh (X)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="tingkatKelas" value="11" class="form-checkbox h-4 w-4 text-blue-600">
+                                    <span class="ml-2 text-gray-700">Sebelas (XI)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="tingkatKelas" value="12" class="form-checkbox h-4 w-4 text-blue-600">
+                                    <span class="ml-2 text-gray-700">Dua Belas (XII)</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-start pt-4 space-x-2">
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                                <ion-icon name="save-outline" class="mr-2"></ion-icon>Simpan
+                            </button>
+                            <button type="button" id="cancelBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                                <ion-icon name="close-outline" class="mr-2"></ion-icon>Batal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="w-full md:w-2/3 bg-white p-6 rounded-lg shadow-lg">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Daftar Pengaturan Mata Pelajaran</h3>
+                        <!-- <button id="kelompokBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                            Kelompok Mata Pelajaran
+                        </button> -->
+                    </div>
+                    
+                    <div class="p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 mb-4">
+                        <p class="font-bold">INFORMASI</p>
+                        <p>Mata Pelajaran diatur setiap semester, jadi ketika anda memasuki semester aktif diharapkan untuk mengaturnya.</p>
+                    </div>
+
+                    <div id="alert-box" class="p-4 bg-orange-100 border-l-4 border-orange-500 text-orange-700 mb-4 hidden">
+                        <p class="font-bold">MOHON MAAF</p>
+                        <p>Data tidak ditemukan</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500 hidden" id="dataTable">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">NO</th>
+                                    <th scope="col" class="px-6 py-3">MATA PELAJARAN</th>
+                                    <th scope="col" class="px-6 py-3">ALIAS</th>
+                                    <th scope="col" class="px-6 py-3">KELOMPOK</th>
+                                    <th scope="col" class="px-6 py-3">TINGKAT KELAS</th>
+                                    <th scope="col" class="px-6 py-3">AKSI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    
+    <script src="../assets/app.js"></script>
+    <script src="../assets/sidebar-sub.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('dataForm');
+            const tableBody = document.getElementById('tableBody');
+            const dataTable = document.getElementById('dataTable');
+            const alertBox = document.getElementById('alert-box');
+            const mataPelajaranSelect = document.getElementById('mataPelajaran');
+            const aliasInput = document.getElementById('alias');
+            const kelompokMataPelajaranSelect = document.getElementById('kelompokMataPelajaran');
+            const programStudiSelect = document.getElementById('programStudi');
+            const programKeahlianSelect = document.getElementById('programKeahlian');
+            const tingkatKelasCheckboxes = document.querySelectorAll('input[name="tingkatKelas"]');
+            const idInput = document.getElementById('dataId');
+            const cancelBtn = document.getElementById('cancelBtn');
+
+            // Data dummy
+            const mataPelajaranList = [
+                { id: '1', name: 'Bahasa Indonesia' },
+                { id: '2', name: 'Matematika' },
+                { id: '3', name: 'Bahasa Inggris' },
+                { id: '4', name: 'Pendidikan Agama' },
+                { id: '5', name: 'Sejarah Indonesia' },
+                { id: '6', name: 'Pendidikan Pancasila' },
+            ];
+            
+            const kelompokMataPelajaranList = [
+                { id: 'A', name: 'Kelompok A (Wajib)' },
+                { id: 'B', name: 'Kelompok B (Wajib)' },
+                { id: 'C', name: 'Kelompok C (Peminatan)' },
+            ];
+
+            const programStudiList = [
+                { id: '1', name: 'Teknologi Manufaktur dan Rekayasa' },
+                { id: '2', name: 'Manajemen Perkantoran' },
+                { id: '3', name: 'Seni dan Ekonomi Kreatif' },
+                { id: '4', name: 'Teknologi Informasi' },
+                { id: '5', name: 'Bisnis Manajemen' },
+            ];
+
+            const programKeahlianList = {
+                '1': [
+                    { id: '1A', name: 'Teknik Otomotif' },
+                    { id: '1B', name: 'Teknik Mesin' }
+                ],
+                '2': [
+                    { id: '2A', name: 'Manajemen Perkantoran dan Layanan Bisnis' }
+                ],
+                '3': [
+                    { id: '3A', name: 'Desain Komunikasi Visual' }
+                ],
+                '4': [
+                    { id: '4A', name: 'Pengembangan Perangkat Lunak dan GIM' },
+                    { id: '4B', name: 'Teknik Jaringan Komputer dan Telekomunikasi' }
+                ],
+                '5': [
+                    { id: '5A', name: 'Akuntansi dan Keuangan Lembaga' }
+                ]
+            };
+            
+            // Mengambil tahun ajaran dan semester aktif dari local storage
+            const activeYear = JSON.parse(localStorage.getItem('schoolAcademicYearsV2'))?.find(y => y.status === 'Aktif') || { tahun: '2025/2026' };
+            const activeSemester = JSON.parse(localStorage.getItem('schoolSemesters'))?.find(s => s.status === 'Aktif') || { semester: 'Ganjil' };
+
+            document.getElementById('tapel-display').textContent = activeYear.tahun;
+            document.getElementById('semester-display').textContent = activeSemester.semester;
+            document.getElementById('form-tapel').textContent = activeYear.tahun;
+            document.getElementById('form-semester').textContent = activeSemester.semester;
+
+            const KEY = `mapel_${activeYear.tahun.replace('/', '_')}_${activeSemester.semester}`;
+            let mapelSettings = JSON.parse(localStorage.getItem(KEY)) || [];
+
+            const save = () => localStorage.setItem(KEY, JSON.stringify(mapelSettings));
+
+            const populateDropdown = (selectElement, dataList) => {
+                selectElement.innerHTML = '<option value="" disabled selected>- Pilih -</option>';
+                dataList.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    selectElement.appendChild(option);
+                });
+            };
+
+            const populateProgramKeahlian = (prodiId) => {
+                programKeahlianSelect.innerHTML = '<option value="" disabled selected>- Pilih -</option>';
+                programKeahlianSelect.disabled = false;
+                const keahlianList = programKeahlianList[prodiId] || [];
+                keahlianList.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    programKeahlianSelect.appendChild(option);
+                });
+            };
+
+            const render = () => {
+                tableBody.innerHTML = '';
+                if (mapelSettings.length === 0) {
+                    dataTable.classList.add('hidden');
+                    alertBox.classList.remove('hidden');
+                    return;
+                }
+                
+                dataTable.classList.remove('hidden');
+                alertBox.classList.add('hidden');
+                
+                mapelSettings.forEach((item, index) => {
+                    const tingkatKelasDisplay = item.tingkatKelas.sort().map(t => {
+                        if (t === '10') return 'X';
+                        if (t === '11') return 'XI';
+                        if (t === '12') return 'XII';
+                        return '';
+                    }).join(', ');
+                    
+                    tableBody.innerHTML += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900">${index + 1}</td>
+                            <td class="px-6 py-4">${item.mataPelajaran}</td>
+                            <td class="px-6 py-4">${item.alias || '-'}</td>
+                            <td class="px-6 py-4">${item.kelompok}</td>
+                            <td class="px-6 py-4">${tingkatKelasDisplay}</td>
+                            <td class="px-6 py-4 flex space-x-3 text-lg">
+                                <button class="edit-btn text-blue-500 hover:text-blue-700" data-id="${item.id}" title="Edit"><ion-icon name="create-outline"></ion-icon></button>
+                                <button class="delete-btn text-red-500 hover:text-red-700" data-id="${item.id}" title="Hapus"><ion-icon name="trash-outline"></ion-icon></button>
+                            </td>
+                        </tr>`;
+                });
+            };
+
+            const resetForm = () => {
+                form.reset();
+                idInput.value = '';
+                programKeahlianSelect.innerHTML = '<option value="" disabled selected>- Pilih -</option>';
+                programKeahlianSelect.disabled = true;
+            };
+            
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const selectedMapel = mataPelajaranList.find(m => m.id === mataPelajaranSelect.value);
+                const selectedKelompok = kelompokMataPelajaranList.find(k => k.id === kelompokMataPelajaranSelect.value);
+                const selectedProdi = programStudiList.find(p => p.id === programStudiSelect.value);
+                const selectedKeahlian = programKeahlianList[programStudiSelect.value]?.find(pk => pk.id === programKeahlianSelect.value);
+                
+                const tingkatKelas = Array.from(tingkatKelasCheckboxes)
+                                          .filter(checkbox => checkbox.checked)
+                                          .map(checkbox => checkbox.value);
+
+                const formData = {
+                    id: idInput.value || Date.now().toString(),
+                    mataPelajaran: selectedMapel.name,
+                    alias: aliasInput.value,
+                    kelompok: selectedKelompok.name,
+                    tingkatKelas: tingkatKelas,
+                    // Untuk saat ini, Program Studi dan Program Keahlian tidak ditampilkan di tabel,
+                    // tapi bisa disimpan di data untuk referensi.
+                    programStudi: selectedProdi ? selectedProdi.name : '',
+                    programKeahlian: selectedKeahlian ? selectedKeahlian.name : '',
+                };
+                
+                if (idInput.value) {
+                    const index = mapelSettings.findIndex(p => p.id === formData.id);
+                    mapelSettings[index] = formData;
+                } else {
+                    mapelSettings.push(formData);
+                }
+                save(); 
+                render(); 
+                resetForm();
+                App.helpers.showToast('Data berhasil disimpan!');
+            });
+
+            programStudiSelect.addEventListener('change', (e) => {
+                const prodiId = e.target.value;
+                populateProgramKeahlian(prodiId);
+            });
+
+            tableBody.addEventListener('click', (e) => {
+                const id = e.target.closest('button')?.dataset.id;
+                if (!id) return;
+
+                if (e.target.closest('.edit-btn')) {
+                    const item = mapelSettings.find(item => item.id === id);
+                    if (item) {
+                        idInput.value = item.id;
+                        // Logika edit untuk dropdowns dan checkboxes akan lebih kompleks
+                        aliasInput.value = item.alias;
+                        App.helpers.showToast('Data berhasil di-edit!');
+                    }
+                }
+                
+                if (e.target.closest('.delete-btn')) {
+                    if (confirm('Yakin ingin hapus data ini?')) {
+                        mapelSettings = mapelSettings.filter(p => p.id !== id);
+                        save(); 
+                        render();
+                        App.helpers.showToast('Data berhasil dihapus!', 'error');
+                    }
+                }
+            });
+
+            cancelBtn.addEventListener('click', resetForm);
+            
+            // Inisialisasi
+            populateDropdown(mataPelajaranSelect, mataPelajaranList);
+            populateDropdown(kelompokMataPelajaranSelect, kelompokMataPelajaranList);
+            populateDropdown(programStudiSelect, programStudiList);
+            render();
+        });
+    </script>
+</body>
+</html>
