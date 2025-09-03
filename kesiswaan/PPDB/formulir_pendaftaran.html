@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Data Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .tab-link { 
+            transition: all 0.2s ease; 
+            padding: 0.75rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+        }
+        .tab-link.active { 
+            border-bottom-color: #3b82f6; 
+            color: #3b82f6; 
+            font-weight: 600; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 flex flex-col p-6 md:p-10 overflow-y-auto">
+            <header class="flex-shrink-0 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 id="formTitle" class="text-3xl font-bold text-gray-900">Formulir Pendaftaran Siswa</h1>
+                    <p class="text-gray-600 mt-1">Lengkapi semua data siswa baru pada tab di bawah ini.</p>
+                </div>
+            </header>
+
+            <div class="mt-8 bg-white rounded-xl shadow-lg flex-grow flex flex-col">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-800">Formulir Pendaftaran</h3>
+                        <div class="flex gap-2">
+                            <button id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition">
+                                <ion-icon name="save-outline" class="mr-2"></ion-icon>
+                                Simpan
+                            </button>
+                            <button id="newBtn" onclick="document.getElementById('idIframeAnda').contentWindow.saveData()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition">
+                                <ion-icon name="add-outline" class="mr-2"></ion-icon>
+                                Baru
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 flex-grow">
+                    <iframe id="idIframeAnda" src="../form-tabs-ppdb/formulir.html" class="w-full h-full border-0"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../../assets/app.js" defer></script>
+    <script src="../../assets/sidebar-sub-ppdb.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const formTabs = document.getElementById('form-tabs');
+        const iframe = document.getElementById('form-tab-content');
+        
+        formTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.target.tagName === 'A') {
+                const src = e.target.dataset.src;
+                if (src) {
+                    iframe.src = src;
+                    document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+            }
+        });
+
+        // Logika Simpan bisa dikembangkan lebih lanjut untuk mengambil data dari iframe
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.addEventListener('click', () => {
+             App.helpers.showToast('Data siswa berhasil disimpan!');
+             setTimeout(() => { window.location.href = 'data_siswa.html'; }, 1500);
+        });
+    });
+    </script>
+</body>
+</html>

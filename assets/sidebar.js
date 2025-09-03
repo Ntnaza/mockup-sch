@@ -20,17 +20,11 @@ function buildSidebar() {
                 
                 <!-- Grup Menu (href disesuaikan) -->
                 
-                <!-- Profil Sekolah -->
-                <div class="sidebar-group mt-2">
-                    <button class="sidebar-group-toggle">
-                        <span class="flex items-center gap-3"><ion-icon name="business-outline" class="w-5 h-5"></ion-icon><span>Profil Sekolah</span></span>
-                        <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
-                    </button>
-                    <div class="sidebar-submenu">
-                        <a href="../profil_sekolah/profil.html" class="sidebar-link">Profil</a>
-                        <!-- Tambahkan link lain jika ada -->
-                    </div>
-                </div>
+                <!-- Profil Sekolah (Link Langsung) -->
+                <a href="../profil_sekolah/profil.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-200 mt-2" data-page="profil">
+                    <ion-icon name="business-outline" class="w-5 h-5"></ion-icon>
+                    <span>Profil Sekolah</span>
+                </a>
 
                 <!-- Keuangan -->
                 <div class="sidebar-group">
@@ -62,6 +56,28 @@ function buildSidebar() {
                         <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
                     </button>
                     <div class="sidebar-submenu">
+                        <div class="sidebar-group">
+                            <button class="sidebar-group-toggle">
+                                <span class="flex items-center gap-3">
+                                    <ion-icon name="person-add-outline" class="w-5 h-5"></ion-icon>
+                                    <span>PPDB</span>
+                                </span>
+                                <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
+                            </button>
+                            <div class="sidebar-group-submenu">
+                                <a href="kesiswaan/PPDB/tahun_pendaftaran.html" class="sidebar-link" data-page="tahun_pendaftaran">Tahun Pendaftaran PPDB</a>
+                                <a href="kesiswaan/PPDB/jalur_pendaftaran.html" class="sidebar-link" data-page="jalur_pendaftaran">Jalur Pendaftaran</a>
+                                <a href="kesiswaan/PPDB/kuota_pendaftaran.html" class="sidebar-link" data-page="kuota_pendaftaran">Quota Pendaftaran</a>
+                                <a href="kesiswaan/PPDB/syarat_pendaftaran.html" class="sidebar-link" data-page="syarat_pendaftaran">Syarat Pendaftaran</a>
+                                <a href="kesiswaan/PPDB/formulir_pendaftaran.html" class="sidebar-link" data-page="formulir_pendaftaran">Formulir Pendaftaran</a>
+                                <a href="kesiswaan/PPDB/daftar_calon_peserta_didik.html" class="sidebar-link" data-page="daftar_calon_peserta_didik">Daftar Calon Peserta Didik</a>
+                                <a href="kesiswaan/PPDB/pemberian_nisn.html" class="sidebar-link" data-page="pemberian_nisn">Pemberian NISN</a>
+                                <a href="kesiswaan/PPDB/daftar_peserta_didik_baru.html" class="sidebar-link" data-page="daftar_peserta_didik_baru">Daftar Peserta Didik Baru</a>
+                                <a href="kesiswaan/PPDB/penempatan_kelas.html" class="sidebar-link" data-page="penempatan_kelas">Penempatan Kelas</a>
+                                <a href="kesiswaan/PPDB/laporan_pendaftaran.html" class="sidebar-link" data-page="laporan_pendaftaran">Laporan Pendaftaran</a>
+                                <a href="kesiswaan/PPDB/laporan_kuota.html" class="sidebar-link" data-page="laporan_kuota">Laporan Kuota</a>
+                            </div>
+                        </div>
                         <a href="../kesiswaan/ppdb.html" class="sidebar-link" data-page="ppdb">PPDB</a>
                         <a href="../kesiswaan/data_siswa.html" class="sidebar-link" data-page="data_siswa">Data Siswa</a>
                         <a href="../kesiswaan/absensi_siswa.html" class="sidebar-link" data-page="absensi_siswa">Absensi Siswa</a>
