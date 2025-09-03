@@ -5,32 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Standar Styling untuk Form di dalam Iframe */
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2">
+    <form id="pribadi-form" class="p-2">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Kolom 1 -->
             <div class="space-y-4">
                 <div class="space-y-3 text-center">
                     <img id="previewFoto" src="https://placehold.co/300x400/e2e8f0/64748b?text=Foto+3x4" alt="Foto Siswa" class="w-40 h-52 mx-auto rounded-lg object-cover border-4 border-white shadow-md">
@@ -45,10 +28,11 @@
                 <div><label class="form-label">KPS</label><input type="text" id="kps" class="form-input"></div>
             </div>
 
+            <!-- Kolom 2 -->
             <div class="space-y-4">
-                <div><label class="form-label">Nama Lengkap</label><input type="text" id="namaLengkap" class="form-input"></div>
+                <div><label class="form-label">Nama Lengkap</label><input type="text" id="nama" class="form-input"></div>
                 <div><label class="form-label">Nama Panggilan</label><input type="text" id="panggilan" class="form-input"></div>
-                <div><label class="form-label">Jenis Kelamin</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="L" class="mr-2">Laki-laki</label><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="P" class="mr-2">Perempuan</label></div></div>
+                <div><label class="form-label">Jenis Kelamin</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="lp" value="L" class="mr-2">Laki-laki</label><label class="inline-flex items-center"><input type="radio" name="lp" value="P" class="mr-2">Perempuan</label></div></div>
                 <div><label class="form-label">Tempat Lahir</label><input type="text" id="tempatLahir" class="form-input"></div>
                 <div><label class="form-label">Tanggal Lahir</label><input type="date" id="tglLahir" class="form-input"></div>
                 <div><label class="form-label">Agama</label><select id="agama" class="form-input"><option>Islam</option><option>Kristen</option><option>Katolik</option><option>Hindu</option><option>Buddha</option><option>Konghucu</option></select></div>
@@ -56,6 +40,7 @@
                 <div><label class="form-label">Golongan Darah</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="goldar" value="A">A</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="B">B</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="AB">AB</label><label class="inline-flex items-center"><input type="radio" name="goldar" value="O">O</label></div></div>
             </div>
 
+            <!-- Kolom 3 -->
             <div class="space-y-4">
                 <div><label class="form-label">Bahasa Sehari-hari</label><input type="text" id="bahasa" class="form-input"></div>
                 <div><label class="form-label">Anak Ke</label><input type="number" id="anakKe" class="form-input"></div>
@@ -66,6 +51,79 @@
                 <div><label class="form-label">Kategori Anak</label><div class="mt-2 space-y-2"><label class="block"><input type="radio" name="katAnak" value="Normal"> Tanpa Kategori</label><label class="block"><input type="radio" name="katAnak" value="Yatim"> Yatim</label><label class="block"><input type="radio" name="katAnak" value="Piatu"> Piatu</label><label class="block"><input type="radio" name="katAnak" value="Yatim Piatu"> Yatim Piatu</label></div></div>
             </div>
         </div>
-    </div>
+    </form>
+    
+    <script>
+        // "Jembatan Komunikasi" di sisi anak (iframe)
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload;
+                if (!data) return;
+
+                // Mengisi semua field dari data yang diterima
+                document.getElementById('nis').value = data.nis || '';
+                document.getElementById('nisn').value = data.nisn || '';
+                document.getElementById('nik').value = data.nik || '';
+                document.getElementById('noAkte').value = data.noAkte || '';
+                document.getElementById('noPip').value = data.noPip || '';
+                document.getElementById('pkh').value = data.pkh || '';
+                document.getElementById('kps').value = data.kps || '';
+                document.getElementById('nama').value = data.nama || '';
+                document.getElementById('panggilan').value = data.panggilan || '';
+                document.getElementById('tempatLahir').value = data.tempatLahir || '';
+                document.getElementById('tglLahir').value = data.tglLahir || '';
+                document.getElementById('agama').value = data.agama || 'Islam';
+                document.getElementById('bahasa').value = data.bahasa || '';
+                document.getElementById('anakKe').value = data.anakKe || '';
+                document.getElementById('jmlKandung').value = data.jmlKandung || '';
+                document.getElementById('jmlTiri').value = data.jmlTiri || '';
+                document.getElementById('jmlAngkat').value = data.jmlAngkat || '';
+                document.getElementById('statusKeluarga').value = data.statusKeluarga || 'Anak Kandung';
+
+                const setRadioValue = (name, value) => {
+                    const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (radio) radio.checked = true;
+                };
+                setRadioValue('lp', data.lp);
+                setRadioValue('warga', data.warga);
+                setRadioValue('goldar', data.goldar);
+                setRadioValue('katAnak', data.katAnak);
+
+            } else if (type === 'GET_FORM_DATA') {
+                const getRadioValue = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
+
+                // Mengumpulkan semua data dari form untuk dikirim kembali
+                const formData = {
+                    nis: document.getElementById('nis').value,
+                    nisn: document.getElementById('nisn').value,
+                    nik: document.getElementById('nik').value,
+                    noAkte: document.getElementById('noAkte').value,
+                    noPip: document.getElementById('noPip').value,
+                    pkh: document.getElementById('pkh').value,
+                    kps: document.getElementById('kps').value,
+                    nama: document.getElementById('nama').value,
+                    panggilan: document.getElementById('panggilan').value,
+                    tempatLahir: document.getElementById('tempatLahir').value,
+                    tglLahir: document.getElementById('tglLahir').value,
+                    agama: document.getElementById('agama').value,
+                    bahasa: document.getElementById('bahasa').value,
+                    anakKe: document.getElementById('anakKe').value,
+                    jmlKandung: document.getElementById('jmlKandung').value,
+                    jmlTiri: document.getElementById('jmlTiri').value,
+                    jmlAngkat: document.getElementById('jmlAngkat').value,
+                    statusKeluarga: document.getElementById('statusKeluarga').value,
+                    lp: getRadioValue('lp'),
+                    warga: getRadioValue('warga'),
+                    goldar: getRadioValue('goldar'),
+                    katAnak: getRadioValue('katAnak'),
+                };
+
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: formData }, '*');
+            }
+        });
+    </script>
 </body>
 </html>
+

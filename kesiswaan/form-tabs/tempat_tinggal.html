@@ -5,30 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2">
+    <form id="tempat-tinggal-form" class="p-2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             <!-- Kolom Kiri -->
             <div class="space-y-4">
@@ -36,7 +19,7 @@
                 <div><label class="form-label">RT</label><input type="text" id="rt" class="form-input"></div>
                 <div><label class="form-label">RW</label><input type="text" id="rw" class="form-input"></div>
                 <div><label class="form-label">Kecamatan</label><select id="kecamatan" class="form-input"><option value="">- Pilih -</option></select></div>
-                <div><label class="form-label">Desa/Kelurahan</label><select id="desa" class="form-input"><option value="">- Pilih Kecamatan Terlebih Dahulu -</option></select></div>
+                <div><label class="form-label">Desa/Kelurahan</label><select id="desa" class="form-input" disabled><option value="">- Pilih Kecamatan Terlebih Dahulu -</option></select></div>
                 <div><label class="form-label">Kode Pos</label><input type="text" id="kodePos" class="form-input"></div>
                 <div><label class="form-label">Kabupaten</label><select id="kabupaten" class="form-input"><option value="cianjur">Cianjur</option></select></div>
                 <div><label class="form-label">Provinsi</label><input type="text" id="provinsi" class="form-input bg-gray-100" value="Jawa Barat" readonly></div>
@@ -50,6 +33,87 @@
                 <div><label class="form-label">Ke sekolah dengan (Mode Transportasi)</label><select id="transportasi" class="form-input"><option value="">- Pilih -</option><option value="jalan_kaki">Jalan Kaki</option><option value="angkutan_umum">Angkutan Umum</option><option value="kendaraan_pribadi">Kendaraan Pribadi</option><option value="antar_jemput">Antar Jemput Sekolah</option></select></div>
             </div>
         </div>
-    </div>
+    </form>
+
+    <script>
+        // Data tiruan untuk wilayah Cianjur
+        const wilayahData = {
+            "Cianjur": ["Pamoyanan", "Solokpandan", "Sawah Gede", "Muka", "Bojongherang"],
+            "Cibeber": ["Cihaur", "Cikondang", "Cipetir", "Girimulya", "Kanoman"],
+            "Karangtengah": ["Bojong", "Ciherang", "Hegarsari", "Langensari", "Sukasirna"],
+            "Pacet": ["Cibodas", "Cipendawa", "Ciherang", "Sukanagalih", "Gadog"]
+        };
+
+        const kecamatanSelect = document.getElementById('kecamatan');
+        const desaSelect = document.getElementById('desa');
+
+        // Isi dropdown kecamatan
+        Object.keys(wilayahData).forEach(kec => {
+            kecamatanSelect.innerHTML += `<option value="${kec}">${kec}</option>`;
+        });
+
+        // Event listener untuk mengubah desa saat kecamatan dipilih
+        kecamatanSelect.addEventListener('change', () => {
+            const selectedKec = kecamatanSelect.value;
+            desaSelect.innerHTML = '<option value="">- Pilih -</option>';
+            desaSelect.disabled = true;
+
+            if (selectedKec && wilayahData[selectedKec]) {
+                wilayahData[selectedKec].forEach(desa => {
+                    desaSelect.innerHTML += `<option value="${desa}">${desa}</option>`;
+                });
+                desaSelect.disabled = false;
+            }
+        });
+
+        // "Jembatan Komunikasi" dengan halaman induk
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload;
+                if (!data) return;
+
+                // Mengisi semua field dari data yang diterima
+                document.getElementById('alamat').value = data.alamat || '';
+                document.getElementById('rt').value = data.rt || '';
+                document.getElementById('rw').value = data.rw || '';
+                document.getElementById('kodePos').value = data.kodePos || '';
+                document.getElementById('telepon').value = data.telepon || '';
+                document.getElementById('tinggalDengan').value = data.tinggalDengan || '';
+                document.getElementById('jarak').value = data.jarak || '';
+                document.getElementById('transportasi').value = data.transportasi || '';
+
+                // Mengisi dropdown kecamatan dan memicu event change untuk mengisi desa
+                if (data.kecamatan) {
+                    kecamatanSelect.value = data.kecamatan;
+                    kecamatanSelect.dispatchEvent(new Event('change'));
+                    // Set desa setelah dropdown-nya terisi
+                    setTimeout(() => {
+                        desaSelect.value = data.desa || '';
+                    }, 0);
+                }
+
+            } else if (type === 'GET_FORM_DATA') {
+                // Mengumpulkan semua data dari form untuk dikirim kembali
+                const formData = {
+                    alamat: document.getElementById('alamat').value,
+                    rt: document.getElementById('rt').value,
+                    rw: document.getElementById('rw').value,
+                    kecamatan: document.getElementById('kecamatan').value,
+                    desa: document.getElementById('desa').value,
+                    kodePos: document.getElementById('kodePos').value,
+                    kabupaten: document.getElementById('kabupaten').value,
+                    provinsi: document.getElementById('provinsi').value,
+                    telepon: document.getElementById('telepon').value,
+                    tinggalDengan: document.getElementById('tinggalDengan').value,
+                    jarak: document.getElementById('jarak').value,
+                    transportasi: document.getElementById('transportasi').value,
+                };
+                
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: formData }, '*');
+            }
+        });
+    </script>
 </body>
 </html>

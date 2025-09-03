@@ -6,30 +6,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <style>
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2">
+    <form id="jasmani-form" class="p-2">
         <!-- Data Jasmani -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 mb-6">
             <div><label class="form-label">Berat badan pada waktu diterima (kg)</label><input type="number" id="beratBadan" class="form-input"></div>
@@ -48,7 +31,7 @@
                 Tambah Riwayat Penyakit
             </button>
         </div>
-    </div>
+    </form>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -56,25 +39,84 @@
         const addBtn = document.getElementById('tambah-penyakit-btn');
         let rowCount = 0;
 
-        function addRow() {
+        // Fungsi untuk menambah baris, sekarang bisa menerima data untuk diisi
+        const addRow = (data = {}) => {
             rowCount++;
             const row = document.createElement('div');
-            row.className = 'grid grid-cols-12 gap-2 items-center';
+            row.className = 'grid grid-cols-12 gap-2 items-center dynamic-row';
             row.innerHTML = `
-                <div class="col-span-1 text-center text-gray-500">${rowCount}</div>
-                <div class="col-span-3"><input type="text" placeholder="Jenis Penyakit" class="form-input"></div>
-                <div class="col-span-2"><input type="text" placeholder="Kelas" class="form-input"></div>
-                <div class="col-span-2"><input type="text" placeholder="Tahun" class="form-input"></div>
-                <div class="col-span-2"><input type="text" placeholder="Lama Sakit" class="form-input"></div>
-                <div class="col-span-2"><input type="text" placeholder="Keterangan" class="form-input"></div>
+                <div class="col-span-4 md:col-span-3"><input type="text" name="jenisPenyakit" placeholder="Jenis Penyakit" class="form-input" value="${data.jenis || ''}"></div>
+                <div class="col-span-2 md:col-span-2"><input type="text" name="kelasSakit" placeholder="Kelas" class="form-input" value="${data.kelas || ''}"></div>
+                <div class="col-span-2 md:col-span-2"><input type="text" name="tahunSakit" placeholder="Tahun" class="form-input" value="${data.tahun || ''}"></div>
+                <div class="col-span-3 md:col-span-2"><input type="text" name="lamaSakit" placeholder="Lama Sakit" class="form-input" value="${data.lama || ''}"></div>
+                <div class="hidden md:block col-span-2"><input type="text" name="ketSakit" placeholder="Keterangan" class="form-input" value="${data.keterangan || ''}"></div>
+                <div class="col-span-1 text-right">
+                    <button type="button" class="delete-penyakit-btn text-red-500 hover:text-red-700">
+                        <ion-icon name="trash-outline" class="w-5 h-5"></ion-icon>
+                    </button>
+                </div>
             `;
             container.appendChild(row);
-        }
+        };
 
-        addBtn.addEventListener('click', addRow);
+        addBtn.addEventListener('click', () => addRow());
 
-        // Tambah satu baris di awal
-        addRow();
+        // Event listener untuk tombol hapus baris
+        container.addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-penyakit-btn');
+            if (deleteBtn) {
+                deleteBtn.closest('.dynamic-row').remove();
+            }
+        });
+        
+        // "Jembatan Komunikasi"
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload;
+                if (!data) return;
+
+                // Mengisi field statis
+                document.getElementById('beratBadan').value = data.beratBadan || '';
+                document.getElementById('tinggiBadan').value = data.tinggiBadan || '';
+                document.getElementById('kelainan').value = data.kelainan || '';
+                
+                // Mengisi riwayat penyakit dinamis
+                container.innerHTML = ''; // Kosongkan dulu
+                rowCount = 0;
+                if (data.riwayatPenyakit && data.riwayatPenyakit.length > 0) {
+                    data.riwayatPenyakit.forEach(penyakit => addRow(penyakit));
+                } else {
+                    addRow(); // Tambah satu baris kosong jika tidak ada data
+                }
+
+            } else if (type === 'GET_FORM_DATA') {
+                const riwayatPenyakitData = [];
+                container.querySelectorAll('.dynamic-row').forEach(row => {
+                    const jenis = row.querySelector('[name="jenisPenyakit"]').value;
+                    if (jenis) { // Hanya simpan jika ada nama penyakit
+                        riwayatPenyakitData.push({
+                            jenis: jenis,
+                            kelas: row.querySelector('[name="kelasSakit"]').value,
+                            tahun: row.querySelector('[name="tahunSakit"]').value,
+                            lama: row.querySelector('[name="lamaSakit"]').value,
+                            keterangan: row.querySelector('[name="ketSakit"]').value,
+                        });
+                    }
+                });
+
+                const formData = {
+                    beratBadan: document.getElementById('beratBadan').value,
+                    tinggiBadan: document.getElementById('tinggiBadan').value,
+                    kelainan: document.getElementById('kelainan').value,
+                    riwayatPenyakit: riwayatPenyakitData,
+                };
+                
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: formData }, '*');
+            }
+        });
+
     });
     </script>
 </body>

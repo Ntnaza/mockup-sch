@@ -6,60 +6,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <style>
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
-        .table-th {
-            background-color: #f9fafb;
-            padding: 0.75rem;
-            text-align: left;
-            font-weight: 600;
-            color: #4b5563;
-        }
-        .table-td {
-            padding: 0.5rem;
-            border-top: 1px solid #e5e7eb;
-        }
-        .add-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 9999px;
-            background-color: #ef4444;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .add-btn:hover {
-            background-color: #dc2626;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+        .table-th { background-color: #f9fafb; padding: 0.75rem; text-align: left; font-weight: 600; color: #4b5563; }
+        .table-td { padding: 0.5rem; border-top: 1px solid #e5e7eb; }
+        .action-btn { display: flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 9999px; color: white; transition: background-color 0.2s; cursor: pointer; }
+        .add-btn { background-color: #2563eb; }
+        .add-btn:hover { background-color: #1d4ed8; }
+        .delete-btn { background-color: #ef4444; }
+        .delete-btn:hover { background-color: #dc2626; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2 space-y-8">
+    <form id="prestasi-form" class="p-2 space-y-8">
         <!-- Prestasi -->
         <div>
             <div class="flex justify-between items-center mb-2">
-                <h4 class="form-label">Prestasi yang pernah dicapai dalam bidang :</h4>
-                <button onclick="addRow('prestasiTable')" class="add-btn">
+                <h4 class="form-label">Prestasi yang pernah dicapai:</h4>
+                <button type="button" id="add-prestasi-btn" class="action-btn add-btn">
                     <ion-icon name="add-outline" class="w-5 h-5"></ion-icon>
                 </button>
             </div>
@@ -67,17 +32,13 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-y">
-                            <th class="table-th w-10">NO</th>
                             <th class="table-th w-2/5">PRESTASI</th>
                             <th class="table-th w-3/5">KETERANGAN</th>
+                            <th class="table-th w-12"></th>
                         </tr>
                     </thead>
-                    <tbody id="prestasiTable">
-                        <tr>
-                            <td class="table-td text-center">1</td>
-                            <td class="table-td"><input type="text" class="form-input"></td>
-                            <td class="table-td"><input type="text" class="form-input"></td>
-                        </tr>
+                    <tbody id="prestasi-container">
+                        <!-- Rows will be added by JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -86,8 +47,8 @@
         <!-- Beasiswa -->
         <div>
             <div class="flex justify-between items-center mb-2">
-                <h4 class="form-label">Penerimaan Beasiswa yang pernah didapat :</h4>
-                <button onclick="addRow('beasiswaTable')" class="add-btn">
+                <h4 class="form-label">Penerimaan Beasiswa yang pernah didapat:</h4>
+                 <button type="button" id="add-beasiswa-btn" class="action-btn add-btn">
                     <ion-icon name="add-outline" class="w-5 h-5"></ion-icon>
                 </button>
             </div>
@@ -95,46 +56,84 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-y">
-                            <th class="table-th w-10">NO</th>
                             <th class="table-th w-2/5">NAMA</th>
                             <th class="table-th w-1/5">TAHUN</th>
                             <th class="table-th w-2/5">DARI</th>
+                            <th class="table-th w-12"></th>
                         </tr>
                     </thead>
-                    <tbody id="beasiswaTable">
-                        <tr>
-                            <td class="table-td text-center">1</td>
-                            <td class="table-td"><input type="text" class="form-input"></td>
-                            <td class="table-td"><input type="text" class="form-input"></td>
-                            <td class="table-td"><input type="text" class="form-input"></td>
-                        </tr>
+                    <tbody id="beasiswa-container">
+                        <!-- Rows will be added by JavaScript -->
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    </form>
 
     <script>
-        function addRow(tableId) {
-            const tableBody = document.getElementById(tableId);
-            const rowCount = tableBody.rows.length;
-            const newRow = tableBody.insertRow(rowCount);
+    document.addEventListener('DOMContentLoaded', () => {
+        const prestasiContainer = document.getElementById('prestasi-container');
+        const beasiswaContainer = document.getElementById('beasiswa-container');
 
-            if (tableId === 'prestasiTable') {
-                newRow.innerHTML = `
-                    <td class="table-td text-center">${rowCount + 1}</td>
-                    <td class="table-td"><input type="text" class="form-input"></td>
-                    <td class="table-td"><input type="text" class="form-input"></td>
-                `;
-            } else if (tableId === 'beasiswaTable') {
-                 newRow.innerHTML = `
-                    <td class="table-td text-center">${rowCount + 1}</td>
-                    <td class="table-td"><input type="text" class="form-input"></td>
-                    <td class="table-td"><input type="text" class="form-input"></td>
-                    <td class="table-td"><input type="text" class="form-input"></td>
-                `;
+        // --- Template Rows ---
+        const createPrestasiRow = (data = { prestasi: '', keterangan: '' }) => `
+            <tr>
+                <td class="table-td"><input type="text" class="form-input prestasi-field" value="${data.prestasi}"></td>
+                <td class="table-td"><input type="text" class="form-input keterangan-field" value="${data.keterangan}"></td>
+                <td class="table-td text-center"><button type="button" class="action-btn delete-btn"><ion-icon name="trash-outline"></ion-icon></button></td>
+            </tr>`;
+        
+        const createBeasiswaRow = (data = { nama: '', tahun: '', dari: '' }) => `
+            <tr>
+                <td class="table-td"><input type="text" class="form-input nama-field" value="${data.nama}"></td>
+                <td class="table-td"><input type="text" class="form-input tahun-field" value="${data.tahun}"></td>
+                <td class="table-td"><input type="text" class="form-input dari-field" value="${data.dari}"></td>
+                <td class="table-td text-center"><button type="button" class="action-btn delete-btn"><ion-icon name="trash-outline"></ion-icon></button></td>
+            </tr>`;
+
+        // --- Event Listeners for Add/Delete ---
+        document.getElementById('add-prestasi-btn').addEventListener('click', () => prestasiContainer.insertAdjacentHTML('beforeend', createPrestasiRow()));
+        document.getElementById('add-beasiswa-btn').addEventListener('click', () => beasiswaContainer.insertAdjacentHTML('beforeend', createBeasiswaRow()));
+
+        prestasiContainer.addEventListener('click', e => { if(e.target.closest('.delete-btn')) e.target.closest('tr').remove(); });
+        beasiswaContainer.addEventListener('click', e => { if(e.target.closest('.delete-btn')) e.target.closest('tr').remove(); });
+
+        // --- "Jembatan Komunikasi" ---
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload.prestasiData;
+                prestasiContainer.innerHTML = '';
+                beasiswaContainer.innerHTML = '';
+
+                if (data && data.prestasi && data.prestasi.length > 0) {
+                    data.prestasi.forEach(p => prestasiContainer.insertAdjacentHTML('beforeend', createPrestasiRow(p)));
+                } else {
+                    prestasiContainer.insertAdjacentHTML('beforeend', createPrestasiRow()); // Add one blank row
+                }
+
+                if (data && data.beasiswa && data.beasiswa.length > 0) {
+                    data.beasiswa.forEach(b => beasiswaContainer.insertAdjacentHTML('beforeend', createBeasiswaRow(b)));
+                } else {
+                    beasiswaContainer.insertAdjacentHTML('beforeend', createBeasiswaRow()); // Add one blank row
+                }
+
+            } else if (type === 'GET_FORM_DATA') {
+                const prestasi = [...prestasiContainer.querySelectorAll('tr')].map(row => ({
+                    prestasi: row.querySelector('.prestasi-field').value,
+                    keterangan: row.querySelector('.keterangan-field').value
+                }));
+                const beasiswa = [...beasiswaContainer.querySelectorAll('tr')].map(row => ({
+                    nama: row.querySelector('.nama-field').value,
+                    tahun: row.querySelector('.tahun-field').value,
+                    dari: row.querySelector('.dari-field').value
+                }));
+
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: { prestasiData: { prestasi, beasiswa } } }, '*');
             }
-        }
+        });
+    });
     </script>
 </body>
 </html>

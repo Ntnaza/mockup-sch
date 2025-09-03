@@ -17,28 +17,20 @@ function buildSidebar() {
                     <span>Dashboard</span>
                 </a>
                 
-                <!-- Profil Sekolah -->
-                <div class="sidebar-group mt-2">
-                    <button class="sidebar-group-toggle">
-                        <span class="flex items-center gap-3"><ion-icon name="business-outline" class="w-5 h-5"></ion-icon><span>Profil Sekolah</span></span>
-                        <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
-                    </button>
-                    <div class="sidebar-submenu">
-                        <a href="#" class="sidebar-link">Profil</a>
-                        <a href="#" class="sidebar-link">Gambar</a>
-                        <a href="#" class="sidebar-link">Alamat</a>
-                        <a href="#" class="sidebar-link">Peta</a>
-                    </div>
-                </div>
+                <!-- Profil Sekolah (Link Langsung) -->
+                <a href="../profil_sekolah/profil.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-200 mt-2" data-page="profil">
+                    <ion-icon name="business-outline" class="w-5 h-5"></ion-icon>
+                    <span>Profil Sekolah</span>
+                </a>
 
                 <!-- Kepegawaian -->
-                <div class="sidebar-group">
+                <div class="sidebar-group mt-2">
                     <button class="sidebar-group-toggle">
                         <span class="flex items-center gap-3"><ion-icon name="people-circle-outline" class="w-5 h-5"></ion-icon><span>Kepegawaian</span></span>
                         <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
                     </button>
                     <div class="sidebar-submenu">
-                        <a href="#" class="sidebar-link">Data Pegawai</a>
+                        <a href="../master_data/guru.html" class="sidebar-link" data-page="data_pegawai">Data Pegawai</a>
                         <a href="#" class="sidebar-link">Tugas Pegawai</a>
                         <a href="#" class="sidebar-link">Pelaksanaan Tugas Harian</a>
                         <a href="#" class="sidebar-link">Mutasi Pegawai</a>
@@ -177,20 +169,29 @@ function buildSidebar() {
     });
 
     const path = window.location.pathname;
-    const page = path.split("/").pop();
-    const activeLink = document.querySelector(`.sidebar-link[href$="${page}"]`);
+    const segments = path.split('/');
+    // Ambil folder dan nama file, contoh: profil_sekolah/profil.html
+    const pagePath = segments.slice(-2).join('/'); 
+    
+    // Cari link yang cocok persis
+    const activeLink = document.querySelector(`.sidebar-link[href$="${pagePath}"]`);
     
     if (activeLink) {
         if (activeLink.closest('.sidebar-submenu')) {
+            // Ini adalah link di dalam submenu
             activeLink.classList.add('active-sub');
             const submenu = activeLink.closest('.sidebar-submenu');
             const toggle = submenu.previousElementSibling;
             submenu.style.display = 'block';
             toggle.querySelector('ion-icon[name="chevron-down-outline"]').classList.add('rotate-180');
         } else {
+            // Ini adalah link utama
             activeLink.classList.add('active');
         }
     }
 }
 
 document.addEventListener('DOMContentLoaded', buildSidebar);
+
+
+

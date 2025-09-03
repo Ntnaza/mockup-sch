@@ -9,6 +9,7 @@
     <style>
         .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
         .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal { transition: opacity 0.2s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -54,6 +55,31 @@
         </main>
     </div>
 
+    <!-- ===== MODAL KONFIRMASI HAPUS ===== -->
+    <div id="delete-confirm-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div class="flex items-start">
+                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <ion-icon name="warning-outline" class="h-6 w-6 text-red-600"></ion-icon>
+                </div>
+                <div class="ml-4 text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Hapus Data Siswa</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">Apakah Anda yakin ingin menghapus data siswa ini? Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button id="confirm-delete-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    Ya, Hapus
+                </button>
+                <button id="cancel-delete-btn" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
 
     <script src="../assets/app.js" defer></script>
@@ -64,6 +90,11 @@
             const filterKelas = document.getElementById('filterKelas');
             const searchSiswa = document.getElementById('searchSiswa');
             
+            // ===== ELEMEN MODAL BARU =====
+            const modal = document.getElementById('delete-confirm-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
             const KEY = 'schoolStudents';
             const getInitialData = () => [
                 { id: '1', nis: '202501', nisn: '0081234567', nik: '3203011005100001', nama: 'Citra Amelia', tempatLahir: 'Bandung', tglLahir: '2010-05-10', lp: 'P', kelas: '10 IPA 1' },
@@ -104,14 +135,37 @@
                 });
             };
             
+            // ===== LOGIKA MODAL BARU =====
+            const openModal = (id) => {
+                // Simpan ID siswa yang akan dihapus di tombol konfirmasi
+                confirmDeleteBtn.dataset.id = id;
+                modal.classList.remove('hidden');
+            };
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+            };
+
             tableBody.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-btn')) {
                     const id = e.target.dataset.id;
-                    if (confirm('Yakin ingin menghapus data siswa ini?')) {
-                        students = students.filter(s => s.id !== id);
-                        save(); render();
-                        App.helpers.showToast('Data siswa berhasil dihapus!', 'error');
-                    }
+                    openModal(id);
+                }
+            });
+
+            confirmDeleteBtn.addEventListener('click', () => {
+                const id = confirmDeleteBtn.dataset.id;
+                students = students.filter(s => s.id !== id);
+                save(); 
+                render();
+                closeModal();
+                App.helpers.showToast('Data siswa berhasil dihapus!', 'error');
+            });
+            
+            cancelDeleteBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
                 }
             });
 

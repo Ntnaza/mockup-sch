@@ -5,42 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
-        .table-th {
-            background-color: #f9fafb;
-            padding: 0.75rem;
-            text-align: left;
-            font-weight: 600;
-            color: #4b5563;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        .table-td {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 0.75rem;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+        .table-th { background-color: #f9fafb; padding: 0.75rem; text-align: left; font-weight: 600; color: #4b5563; border-bottom: 2px solid #e5e7eb; }
+        .table-td { border-bottom: 1px solid #e5e7eb; padding: 0.75rem; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2">
+    <form id="intelegensi-form" class="p-2">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-8">
             <div><label class="form-label">Intelegensi (IQ)</label><input type="text" id="iq" class="form-input"></div>
             <div><label class="form-label">Tanggal Tes IQ</label><input type="date" id="tanggalIq" class="form-input"></div>
@@ -63,49 +36,94 @@
                         <tr>
                             <td class="table-td text-center">1</td>
                             <td class="table-td">Disiplin/ketertiban</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_1"></td>
+                            <td class="table-td text-center"><input type="radio" name="disiplin" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="disiplin" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="disiplin" value="Kurang"></td>
                         </tr>
                         <tr>
                             <td class="table-td text-center">2</td>
                             <td class="table-td">Prakarsa/kreativitas</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_2"></td>
+                            <td class="table-td text-center"><input type="radio" name="kreativitas" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="kreativitas" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="kreativitas" value="Kurang"></td>
                         </tr>
                         <tr>
                             <td class="table-td text-center">3</td>
                             <td class="table-td">Tanggung jawab</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_3"></td>
+                            <td class="table-td text-center"><input type="radio" name="tanggungJawab" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="tanggungJawab" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="tanggungJawab" value="Kurang"></td>
                         </tr>
                         <tr>
                             <td class="table-td text-center">4</td>
                             <td class="table-td">Penyesuaian diri</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_4"></td>
+                            <td class="table-td text-center"><input type="radio" name="penyesuaianDiri" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="penyesuaianDiri" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="penyesuaianDiri" value="Kurang"></td>
                         </tr>
                         <tr>
                             <td class="table-td text-center">5</td>
                             <td class="table-td">Kemantapan emosi</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_5"></td>
+                            <td class="table-td text-center"><input type="radio" name="emosi" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="emosi" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="emosi" value="Kurang"></td>
                         </tr>
                         <tr>
                             <td class="table-td text-center">6</td>
                             <td class="table-td">Kerjasama</td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
-                            <td class="table-td text-center"><input type="radio" name="kepribadian_6"></td>
+                            <td class="table-td text-center"><input type="radio" name="kerjasama" value="Baik"></td>
+                            <td class="table-td text-center"><input type="radio" name="kerjasama" value="Cukup"></td>
+                            <td class="table-td text-center"><input type="radio" name="kerjasama" value="Kurang"></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+    </form>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const kepribadianFields = ['disiplin', 'kreativitas', 'tanggungJawab', 'penyesuaianDiri', 'emosi', 'kerjasama'];
+
+        // --- "Jembatan Komunikasi" ---
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload.intelegensiData;
+                if (!data) return;
+
+                // Mengisi field statis
+                document.getElementById('iq').value = data.iq || '';
+                document.getElementById('tanggalIq').value = data.tanggalIq || '';
+                
+                // Mengisi radio button kepribadian
+                if (data.kepribadian) {
+                    kepribadianFields.forEach(field => {
+                        const value = data.kepribadian[field];
+                        if (value) {
+                            const radio = document.querySelector(`input[name="${field}"][value="${value}"]`);
+                            if (radio) radio.checked = true;
+                        }
+                    });
+                }
+            } else if (type === 'GET_FORM_DATA') {
+                const kepribadianData = {};
+                kepribadianFields.forEach(field => {
+                    const checkedRadio = document.querySelector(`input[name="${field}"]:checked`);
+                    kepribadianData[field] = checkedRadio ? checkedRadio.value : null;
+                });
+
+                const formData = {
+                    iq: document.getElementById('iq').value,
+                    tanggalIq: document.getElementById('tanggalIq').value,
+                    kepribadian: kepribadianData,
+                };
+                
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: { intelegensiData: formData } }, '*');
+            }
+        });
+    });
+    </script>
 </body>
 </html>

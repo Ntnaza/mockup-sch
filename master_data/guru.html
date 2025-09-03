@@ -45,7 +45,7 @@
         </main>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal Form Tambah/Edit -->
     <div id="data-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
             <h3 id="modalTitle" class="text-2xl font-bold mb-4">Tambah Guru Baru</h3>
@@ -71,6 +71,21 @@
         </div>
     </div>
 
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="delete-confirm-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <ion-icon name="warning-outline" class="h-6 w-6 text-red-600"></ion-icon>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-4">Hapus Data Guru?</h3>
+            <p class="text-sm text-gray-500 mt-2">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="cancel-delete-btn" class="cancel-modal-btn bg-white hover:bg-gray-100 border border-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">Batal</button>
+                <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
 
     <script src="../assets/app.js"></script>
@@ -78,12 +93,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const addBtn = document.getElementById('addBtn');
-            const modal = document.getElementById('data-modal');
+            const dataModal = document.getElementById('data-modal');
+            const deleteModal = document.getElementById('delete-confirm-modal');
             const form = document.getElementById('dataForm');
             const tableBody = document.getElementById('tableBody');
             const modalTitle = document.getElementById('modalTitle');
             const idInput = document.getElementById('dataId');
-            
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
             const KEY = 'schoolTeachers';
             const getInitialData = () => [
                 { id: 'G01', nip: '197501012000012001', nama: 'Dr. Indah Permata, M.Pd.', jabatan: 'Kepala Sekolah' },
@@ -111,7 +128,7 @@
                 });
             };
 
-            const openModal = (mode = 'create', id = null) => {
+            const openDataModal = (mode = 'create', id = null) => {
                 form.reset();
                 if (mode === 'create') {
                     modalTitle.textContent = 'Tambah Guru Baru';
@@ -124,9 +141,14 @@
                     document.getElementById('namaGuru').value = teacher.nama;
                     document.getElementById('jabatan').value = teacher.jabatan;
                 }
-                modal.classList.remove('hidden');
+                dataModal.classList.remove('hidden');
             };
             
+            const openDeleteModal = (id) => {
+                confirmDeleteBtn.dataset.id = id;
+                deleteModal.classList.remove('hidden');
+            };
+
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const formData = {
@@ -141,23 +163,25 @@
                 } else {
                     teachers.push(formData);
                 }
-                save(); render(); modal.classList.add('hidden');
+                save(); render(); dataModal.classList.add('hidden');
                 App.helpers.showToast('Data guru berhasil disimpan!');
             });
 
             tableBody.addEventListener('click', (e) => {
                 const id = e.target.dataset.id;
-                if (e.target.classList.contains('edit-btn')) openModal('edit', id);
-                if (e.target.classList.contains('delete-btn')) {
-                    if (confirm('Yakin ingin hapus data guru ini?')) {
-                        teachers = teachers.filter(t => t.id !== id);
-                        save(); render();
-                        App.helpers.showToast('Data berhasil dihapus!', 'error');
-                    }
-                }
+                if (e.target.classList.contains('edit-btn')) openDataModal('edit', id);
+                if (e.target.classList.contains('delete-btn')) openDeleteModal(id);
             });
             
-            addBtn.addEventListener('click', () => openModal('create'));
+            confirmDeleteBtn.addEventListener('click', () => {
+                const id = confirmDeleteBtn.dataset.id;
+                teachers = teachers.filter(t => t.id !== id);
+                save(); render();
+                deleteModal.classList.add('hidden');
+                App.helpers.showToast('Data berhasil dihapus!', 'error');
+            });
+            
+            addBtn.addEventListener('click', () => openDataModal('create'));
             render();
         });
     </script>

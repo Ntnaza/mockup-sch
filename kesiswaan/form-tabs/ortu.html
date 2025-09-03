@@ -5,62 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .form-input {
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.25rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-        }
-        .table-input {
-            border: 1px solid #e5e7eb;
-            padding: 0.5rem;
-            width: 100%;
-            font-size: 0.875rem;
-            border-radius: 0.375rem;
-        }
-        .table-input:focus {
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 2px #BFDBFE;
-            outline: none;
-        }
-        .table-th {
-            background-color: #f9fafb;
-            padding: 0.75rem;
-            text-align: center;
-            font-weight: 600;
-            color: #4b5563;
-            border: 1px solid #e5e7eb;
-        }
-        .table-td {
-            border: 1px solid #e5e7eb;
-            padding: 0.5rem;
-        }
-        .keterangan-td {
-            padding: 0.75rem;
-            font-weight: 600;
-            color: #4b5563;
-            text-align: left;
-            border: 1px solid #e5e7eb;
-        }
+        .form-input { width: 100%; border-radius: 0.5rem; border: 1px solid #D1D5DB; padding: 0.4rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease; }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
+        .table-input { border: 1px solid #e5e7eb; padding: 0.5rem; width: 100%; font-size: 0.875rem; border-radius: 0.375rem; }
+        .table-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .table-th { background-color: #f9fafb; padding: 0.75rem; text-align: center; font-weight: 600; color: #4b5563; border: 1px solid #e5e7eb; }
+        .table-td { border: 1px solid #e5e7eb; padding: 0.5rem; }
+        .keterangan-td { padding: 0.75rem; font-weight: 600; color: #4b5563; text-align: left; border: 1px solid #e5e7eb; }
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2 overflow-x-auto">
-        <table class="w-full border-collapse">
+    <form id="ortu-form" class="p-2 overflow-x-auto">
+        <table class="w-full border-collapse min-w-[1000px]">
             <thead>
                 <tr>
                     <th class="table-th w-1/5">KETERANGAN</th>
@@ -73,83 +30,156 @@
             <tbody>
                 <tr>
                     <td class="keterangan-td">Nama</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nama_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nama_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nama_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nama_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">NIK</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nik_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nik_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nik_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="nik_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Tempat lahir</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="tempatLahir_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="tempatLahir_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="tempatLahir_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="tempatLahir_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Tanggal lahir</td>
-                    <td class="table-td"><input type="date" class="table-input"></td>
-                    <td class="table-td"><input type="date" class="table-input"></td>
-                    <td class="table-td"><input type="date" class="table-input"></td>
-                    <td class="table-td"><input type="date" class="table-input"></td>
+                    <td class="table-td"><input type="date" id="tglLahir_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="date" id="tglLahir_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="date" id="tglLahir_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="date" id="tglLahir_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Kewarganegaraan</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="warga_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="warga_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="warga_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="warga_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Pendidikan tertinggi</td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pendidikan_ayah" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pendidikan_ibu" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pendidikan_waliLaki" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pendidikan_waliPerempuan" class="table-input"><option value="">- Pilih -</option></select></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Pekerjaan</td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pekerjaan_ayah" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pekerjaan_ibu" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pekerjaan_waliLaki" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="pekerjaan_waliPerempuan" class="table-input"><option value="">- Pilih -</option></select></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Penghasilan / bulan</td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
-                    <td class="table-td"><select class="table-input"><option>- Pilih -</option></select></td>
+                    <td class="table-td"><select id="penghasilan_ayah" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="penghasilan_ibu" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="penghasilan_waliLaki" class="table-input"><option value="">- Pilih -</option></select></td>
+                    <td class="table-td"><select id="penghasilan_waliPerempuan" class="table-input"><option value="">- Pilih -</option></select></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Alamat</td>
-                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
-                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
-                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
-                    <td class="table-td"><textarea class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea id="alamat_ayah" class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea id="alamat_ibu" class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea id="alamat_waliLaki" class="table-input h-20"></textarea></td>
+                    <td class="table-td"><textarea id="alamat_waliPerempuan" class="table-input h-20"></textarea></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Telepon</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="telepon_ayah" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="telepon_ibu" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="telepon_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="telepon_waliPerempuan" class="table-input"></td>
                 </tr>
                 <tr>
                     <td class="keterangan-td">Hubungan dengan peserta didik</td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
-                    <td class="table-td"><input type="text" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="hubungan_ayah" class="table-input" value="Ayah Kandung" readonly></td>
+                    <td class="table-td"><input type="text" id="hubungan_ibu" class="table-input" value="Ibu Kandung" readonly></td>
+                    <td class="table-td"><input type="text" id="hubungan_waliLaki" class="table-input"></td>
+                    <td class="table-td"><input type="text" id="hubungan_waliPerempuan" class="table-input"></td>
                 </tr>
             </tbody>
         </table>
-    </div>
+    </form>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Data untuk dropdown ---
+        const pendidikanOptions = ["Tidak Sekolah", "SD Sederajat", "SMP Sederajat", "SMA Sederajat", "D1/D2/D3", "S1", "S2", "S3"];
+        const pekerjaanOptions = ["Tidak Bekerja", "Pensiunan", "PNS", "TNI/Polri", "Guru/Dosen", "Pegawai Swasta", "Wiraswasta", "Petani/Nelayan", "Lainnya"];
+        const penghasilanOptions = ["< Rp 500.000", "Rp 500.000 - Rp 1.000.000", "Rp 1.000.001 - Rp 3.000.000", "Rp 3.000.001 - Rp 5.000.000", "> Rp 5.000.000", "Tidak Berpenghasilan"];
+
+        const roles = ['ayah', 'ibu', 'waliLaki', 'waliPerempuan'];
+
+        // --- Fungsi untuk mengisi dropdown ---
+        const populateSelect = (selectId, options) => {
+            const select = document.getElementById(selectId);
+            options.forEach(opt => select.innerHTML += `<option value="${opt}">${opt}</option>`);
+        };
+
+        roles.forEach(role => {
+            populateSelect(`pendidikan_${role}`, pendidikanOptions);
+            populateSelect(`pekerjaan_${role}`, pekerjaanOptions);
+            populateSelect(`penghasilan_${role}`, penghasilanOptions);
+        });
+
+        // --- "Jembatan Komunikasi" ---
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload.ortuData; // Data ortu ada di dalam object ortuData
+                if (!data) return;
+
+                roles.forEach(role => {
+                    const roleData = data[role];
+                    if (roleData) {
+                        document.getElementById(`nama_${role}`).value = roleData.nama || '';
+                        document.getElementById(`nik_${role}`).value = roleData.nik || '';
+                        document.getElementById(`tempatLahir_${role}`).value = roleData.tempatLahir || '';
+                        document.getElementById(`tglLahir_${role}`).value = roleData.tglLahir || '';
+                        document.getElementById(`warga_${role}`).value = roleData.warga || '';
+                        document.getElementById(`pendidikan_${role}`).value = roleData.pendidikan || '';
+                        document.getElementById(`pekerjaan_${role}`).value = roleData.pekerjaan || '';
+                        document.getElementById(`penghasilan_${role}`).value = roleData.penghasilan || '';
+                        document.getElementById(`alamat_${role}`).value = roleData.alamat || '';
+                        document.getElementById(`telepon_${role}`).value = roleData.telepon || '';
+                        // Jangan isi hubungan untuk ayah & ibu karena readonly
+                        if (role.startsWith('wali')) {
+                           document.getElementById(`hubungan_${role}`).value = roleData.hubungan || '';
+                        }
+                    }
+                });
+
+            } else if (type === 'GET_FORM_DATA') {
+                const ortuData = {};
+                roles.forEach(role => {
+                    ortuData[role] = {
+                        nama: document.getElementById(`nama_${role}`).value,
+                        nik: document.getElementById(`nik_${role}`).value,
+                        tempatLahir: document.getElementById(`tempatLahir_${role}`).value,
+                        tglLahir: document.getElementById(`tglLahir_${role}`).value,
+                        warga: document.getElementById(`warga_${role}`).value,
+                        pendidikan: document.getElementById(`pendidikan_${role}`).value,
+                        pekerjaan: document.getElementById(`pekerjaan_${role}`).value,
+                        penghasilan: document.getElementById(`penghasilan_${role}`).value,
+                        alamat: document.getElementById(`alamat_${role}`).value,
+                        telepon: document.getElementById(`telepon_${role}`).value,
+                        hubungan: document.getElementById(`hubungan_${role}`).value,
+                    };
+                });
+                
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: { ortuData: ortuData } }, '*');
+            }
+        });
+    });
+    </script>
 </body>
 </html>

@@ -39,6 +39,7 @@
 
             <div class="mt-8 bg-white rounded-xl shadow-lg flex-grow flex flex-col">
                 <div class="border-b border-gray-200 flex-shrink-0">
+                    <!-- ===== SEMUA TAB DIKEMBALIKAN ===== -->
                     <nav id="form-tabs" class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
                         <a class="tab-link active" data-src="form-tabs/pribadi.html">Pribadi</a>
                         <a class="tab-link" data-src="form-tabs/tempat_tinggal.html">Tempat Tinggal</a>
@@ -63,14 +64,36 @@
     <script src="../assets/sidebar-sub.js" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const formTabs = document.getElementById('form-tabs');
         const iframe = document.getElementById('form-tab-content');
+        const saveBtn = document.getElementById('saveBtn');
+        const formTitle = document.getElementById('formTitle');
         
-        formTabs.addEventListener('click', (e) => {
+        const KEY = 'schoolStudents';
+        let students = JSON.parse(localStorage.getItem(KEY)) || [];
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id');
+        const isEditMode = studentId !== null;
+        let currentStudentData = null;
+        let combinedData = {};
+
+        if (isEditMode) {
+            currentStudentData = students.find(s => s.id === studentId);
+            formTitle.textContent = 'Edit Data Siswa';
+            if (currentStudentData) combinedData = { ...currentStudentData };
+        }
+
+        iframe.addEventListener('load', () => {
+            if (isEditMode && currentStudentData) {
+                iframe.contentWindow.postMessage({ type: 'POPULATE_FORM', payload: currentStudentData }, '*');
+            }
+        });
+
+        document.getElementById('form-tabs').addEventListener('click', (e) => {
             e.preventDefault();
             if (e.target.tagName === 'A') {
                 const src = e.target.dataset.src;
-                if (src) {
+                if (src && !iframe.src.endsWith(src)) {
                     iframe.src = src;
                     document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
                     e.target.classList.add('active');
@@ -78,13 +101,30 @@
             }
         });
 
-        // Logika Simpan bisa dikembangkan lebih lanjut untuk mengambil data dari iframe
-        const saveBtn = document.getElementById('saveBtn');
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+            if (type === 'FORM_DATA_RESPONSE') {
+                Object.assign(combinedData, payload);
+                
+                if (isEditMode) {
+                    const index = students.findIndex(s => s.id === studentId);
+                    if (index > -1) students[index] = { ...students[index], ...combinedData };
+                } else {
+                    students.push({ id: Date.now().toString(), ...combinedData });
+                }
+                
+                localStorage.setItem(KEY, JSON.stringify(students));
+                App.helpers.showToast('Data siswa berhasil disimpan!');
+                setTimeout(() => { window.location.href = 'data_siswa.html'; }, 1500);
+            }
+        });
+
         saveBtn.addEventListener('click', () => {
-             App.helpers.showToast('Data siswa berhasil disimpan!');
-             setTimeout(() => { window.location.href = 'data_siswa.html'; }, 1500);
+            // Meminta data dari iframe yang sedang aktif
+            iframe.contentWindow.postMessage({ type: 'GET_FORM_DATA' }, '*');
         });
     });
     </script>
 </body>
 </html>
+

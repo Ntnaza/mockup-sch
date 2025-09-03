@@ -28,12 +28,12 @@
     </style>
 </head>
 <body class="bg-white">
-    <div class="p-2">
+    <form id="pendidikan-form" class="p-2">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
             <!-- Kolom 1 -->
             <div class="space-y-4">
                 <div><label class="form-label">Kelas Aktif</label><select id="kelasAktif" class="form-input"><option value="">- Pilih -</option><option>10 IPA 1</option><option>11 IPS 2</option></select></div>
-                <div><label class="form-label">Kelas Diterima</label><input type="text" id="kelasDiterima" class="form-input bg-gray-100" readonly></div>
+                <div><label class="form-label">Kelas Diterima</label><input type="text" id="kelasDiterima" class="form-input"></div>
                 <div><label class="form-label">Tanggal Diterima</label><input type="date" id="tanggalDiterima" class="form-input"></div>
             </div>
 
@@ -51,10 +51,49 @@
             
             <!-- Kolom 4 -->
             <div class="space-y-4">
-                 <div><label class="form-label">Tahun SKHUN Sekolah Asal</label><select id="tahunSkhun" class="form-input"><option value="">- Pilih -</option><option>2025</option><option>2024</option><option>2023</option></select></div>
-                 <div><label class="form-label">Nama SD/MI Sekolah Asal</label><input type="text" id="sdAsal" class="form-input"></div>
+                <div><label class="form-label">Tahun SKHUN Sekolah Asal</label><select id="tahunSkhun" class="form-input"><option value="">- Pilih -</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+                <div><label class="form-label">Nama SD/MI Sekolah Asal</label><input type="text" id="sdAsal" class="form-input"></div>
             </div>
         </div>
-    </div>
+    </form>
+
+    <script>
+        // "Jembatan Komunikasi" dengan halaman induk
+        window.addEventListener('message', (event) => {
+            const { type, payload } = event.data;
+
+            if (type === 'POPULATE_FORM') {
+                const data = payload;
+                if (!data) return;
+
+                // Mengisi semua field dari data yang diterima
+                document.getElementById('kelasAktif').value = data.kelasAktif || '';
+                document.getElementById('kelasDiterima').value = data.kelasDiterima || '';
+                document.getElementById('tanggalDiterima').value = data.tanggalDiterima || '';
+                document.getElementById('noUn').value = data.noUn || '';
+                document.getElementById('sekolahAsal').value = data.sekolahAsal || '';
+                document.getElementById('tahunIjazah').value = data.tahunIjazah || '';
+                document.getElementById('noSeriIjazah').value = data.noSeriIjazah || '';
+                document.getElementById('tahunSkhun').value = data.tahunSkhun || '';
+                document.getElementById('sdAsal').value = data.sdAsal || '';
+
+            } else if (type === 'GET_FORM_DATA') {
+                // Mengumpulkan semua data dari form untuk dikirim kembali
+                const formData = {
+                    kelasAktif: document.getElementById('kelasAktif').value,
+                    kelasDiterima: document.getElementById('kelasDiterima').value,
+                    tanggalDiterima: document.getElementById('tanggalDiterima').value,
+                    noUn: document.getElementById('noUn').value,
+                    sekolahAsal: document.getElementById('sekolahAsal').value,
+                    tahunIjazah: document.getElementById('tahunIjazah').value,
+                    noSeriIjazah: document.getElementById('noSeriIjazah').value,
+                    tahunSkhun: document.getElementById('tahunSkhun').value,
+                    sdAsal: document.getElementById('sdAsal').value,
+                };
+                
+                parent.postMessage({ type: 'FORM_DATA_RESPONSE', payload: formData }, '*');
+            }
+        });
+    </script>
 </body>
 </html>
