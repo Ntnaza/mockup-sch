@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Akademik - Aplikasi Sekolah</title>
+    <title>Pengolahan Nilai - Aplikasi Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <style>
-        .modal { transition: opacity 0.25s ease; }
         .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
         .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .grade-input {
+            width: 100%;
+            text-align: center;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -17,125 +23,197 @@
         <div id="sidebar-placeholder"></div>
         
         <main class="flex-1 overflow-y-auto p-6 md:p-10">
-            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen Nilai Akademik</h1><p class="text-gray-600 mt-1">Input dan kelola nilai siswa per mata pelajaran dengan mudah.</p></header>
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Pengolahan Nilai</h1>
+                <p class="text-gray-600 mt-1">Input nilai siswa berdasarkan mata pelajaran dan kelas.</p>
+            </header>
+            
             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Daftar Nilai Siswa</h3>
-                    <div class="flex items-center gap-4 w-full md:w-auto"><select id="classSelect" class="border rounded py-2 px-3 text-sm w-full"></select><select id="subjectSelect" class="border rounded py-2 px-3 text-sm w-full"></select></div>
+                <!-- Filter -->
+                <div class="border-b pb-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Pilih Kriteria</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                        <div>
+                            <label for="filterTahun" class="text-sm font-semibold text-gray-700">Tahun Pelajaran</label>
+                            <select id="filterTahun" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="filterSemester" class="text-sm font-semibold text-gray-700">Semester</label>
+                            <select id="filterSemester" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                         <div>
+                            <label for="filterKelas" class="text-sm font-semibold text-gray-700">Kelas</label>
+                            <select id="filterKelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <label for="filterMapel" class="text-sm font-semibold text-gray-700">Mata Pelajaran</label>
+                            <select id="filterMapel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                        </div>
+                        <div>
+                            <button id="show-students-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg w-full">Tampilkan Siswa</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 w-1/4">Nama Siswa</th>
-                                <th class="px-3 py-3 text-center">Tugas (20%)</th>
-                                <th class="px-3 py-3 text-center">Harian (20%)</th>
-                                <th class="px-3 py-3 text-center">UTS (30%)</th>
-                                <th class="px-3 py-3 text-center">UAS (30%)</th>
-                                <th class="px-6 py-3 text-center">Nilai Akhir</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gradeTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="flex justify-end mt-6">
-                    <button id="saveGradesBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-5 rounded-lg flex items-center">
-                        <ion-icon name="save-outline" class="mr-2"></ion-icon>
-                        Simpan Semua Perubahan
-                    </button>
+
+                <!-- Tabel Input Nilai -->
+                <div id="grade-table-container" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3">No</th>
+                                    <th class="px-4 py-3">Nama Siswa</th>
+                                    <th class="px-4 py-3 text-center w-24">Tugas</th>
+                                    <th class="px-4 py-3 text-center w-24">UTS</th>
+                                    <th class="px-4 py-3 text-center w-24">UAS</th>
+                                    <th class="px-4 py-3 text-center w-24">Nilai Akhir</th>
+                                    <th class="px-4 py-3 text-center w-24">Predikat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grade-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button id="save-grades-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg flex items-center">
+                            <ion-icon name="save-outline" class="mr-2"></ion-icon>
+                            Simpan Semua Perubahan
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Tidak ada modal untuk halaman ini -->
-
     <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
-
-    <script src="../assets/app.js"></script>
-    <script src="../assets/sidebar-sub.js"></script>
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const classSelect = document.getElementById('classSelect');
-            const subjectSelect = document.getElementById('subjectSelect');
-            const tableBody = document.getElementById('gradeTableBody');
-            const saveBtn = document.getElementById('saveGradesBtn');
-            
-            const KEY = 'schoolGrades';
-            const WEIGHTS = { tugas: 0.2, harian: 0.2, uts: 0.3, uas: 0.3 };
-            let allGrades = JSON.parse(localStorage.getItem(KEY)) || {};
-            const save = () => localStorage.setItem(KEY, JSON.stringify(allGrades));
+    document.addEventListener('DOMContentLoaded', () => {
+        const loadMasterData = (key, initialDataFn) => {
+            let data = JSON.parse(localStorage.getItem(key));
+            if (!data || data.length === 0) { data = initialDataFn(); localStorage.setItem(key, JSON.stringify(data)); }
+            return data;
+        };
 
-            const calculateFinalGrade = (grades) => {
-                const { tugas = 0, harian = 0, uts = 0, uas = 0 } = grades;
-                const final = (tugas * WEIGHTS.tugas) + (harian * WEIGHTS.harian) + (uts * WEIGHTS.uts) + (uas * WEIGHTS.uas);
-                return final.toFixed(1);
-            };
+        // --- Muat semua data master yang dibutuhkan ---
+        const students = loadMasterData('schoolStudents', () => [{ id: '1', nis: '202501', nama: 'Citra Amelia', kelas: 'KLS-X1' }]);
+        const academicYears = loadMasterData('schoolAcademicYears', () => [{ id: 'AY02', tahun: '2025/2026', status: 'Aktif' }]);
+        const semesters = loadMasterData('schoolSemesters', () => [{ id: 'SEM01', semester: 'Ganjil', status: 'Aktif' }]);
+        const classes = loadMasterData('schoolClasses', () => [{ id: 'KLS-X1', nama: 'Kelas X-1' }]);
+        const subjects = loadMasterData('schoolSubjects', () => [{id:'SUB-01', nama:'Matematika Wajib'}, {id:'SUB-02', nama:'Bahasa Indonesia'}]);
+        
+        const GRADES_KEY = 'schoolGrades';
+        let grades = JSON.parse(localStorage.getItem(GRADES_KEY)) || {};
 
-            const render = () => {
-                const selectedClass = classSelect.value;
-                const selectedSubject = subjectSelect.value;
-                const students = App.masterData.siswa[selectedClass];
-                if (!selectedClass || !selectedSubject || !students) {
-                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-gray-500">Pilih kelas dan mata pelajaran untuk mulai.</td></tr>`;
-                    return;
-                }
-                const storageKey = `${selectedClass}_${selectedSubject}`;
-                const currentGrades = allGrades[storageKey] || [];
-                tableBody.innerHTML = '';
-                students.forEach(studentName => {
-                    const studentGradeData = currentGrades.find(g => g.nama === studentName) || { nama: studentName };
-                    const finalGrade = calculateFinalGrade(studentGradeData);
-                    tableBody.innerHTML += `
-                        <tr class="bg-white border-b hover:bg-gray-50" data-student-name="${studentName}">
-                            <td class="px-6 py-4 font-medium text-gray-900">${studentName}</td>
-                            <td class="px-2 py-2"><input type="number" class="w-20 text-center border rounded py-1 grade-input" data-type="tugas" value="${studentGradeData.tugas || ''}" min="0" max="100"></td>
-                            <td class="px-2 py-2"><input type="number" class="w-20 text-center border rounded py-1 grade-input" data-type="harian" value="${studentGradeData.harian || ''}" min="0" max="100"></td>
-                            <td class="px-2 py-2"><input type="number" class="w-20 text-center border rounded py-1 grade-input" data-type="uts" value="${studentGradeData.uts || ''}" min="0" max="100"></td>
-                            <td class="px-2 py-2"><input type="number" class="w-20 text-center border rounded py-1 grade-input" data-type="uas" value="${studentGradeData.uas || ''}" min="0" max="100"></td>
-                            <td class="px-6 py-4 text-center font-bold text-lg ${finalGrade >= 75 ? 'text-green-600' : 'text-red-600'} final-grade">${finalGrade}</td>
-                        </tr>`;
-                });
-            };
-            
-            const updateFinalGradeInRow = (rowElement) => {
-                const grades = {};
-                rowElement.querySelectorAll('.grade-input').forEach(input => { grades[input.dataset.type] = parseFloat(input.value) || 0; });
-                const finalGradeCell = rowElement.querySelector('.final-grade');
-                const finalGrade = calculateFinalGrade(grades);
-                finalGradeCell.textContent = finalGrade;
-                finalGradeCell.className = `px-6 py-4 text-center font-bold text-lg ${finalGrade >= 75 ? 'text-green-600' : 'text-red-600'} final-grade`;
-            };
-            
-            classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>' + Object.keys(App.masterData.siswa).map(c => `<option value="${c}">${c}</option>`).join('');
-            subjectSelect.innerHTML = '<option value="">-- Pilih Mapel --</option>' + App.masterData.mapel.map(s => `<option value="${s}">${s}</option>`).join('');
-            
-            classSelect.addEventListener('change', render);
-            subjectSelect.addEventListener('change', render);
-            tableBody.addEventListener('input', (e) => { if (e.target.classList.contains('grade-input')) updateFinalGradeInRow(e.target.closest('tr')); });
-            
-            saveBtn.addEventListener('click', () => {
-                const storageKey = `${classSelect.value}_${subjectSelect.value}`;
-                if(!classSelect.value || !subjectSelect.value) {
-                    App.helpers.showToast('Pilih kelas dan mapel terlebih dahulu!', 'error');
-                    return;
-                }
-                const newGrades = [];
-                tableBody.querySelectorAll('tr').forEach(row => {
-                    const studentName = row.dataset.studentName;
-                    if(studentName) {
-                        const studentData = { nama: studentName };
-                        row.querySelectorAll('.grade-input').forEach(input => { if(input.value) studentData[input.dataset.type] = parseFloat(input.value); });
-                        newGrades.push(studentData);
-                    }
-                });
-                allGrades[storageKey] = newGrades;
-                save();
-                App.helpers.showToast('Semua perubahan nilai berhasil disimpan!');
+        // --- Elemen DOM ---
+        const filterTahun = document.getElementById('filterTahun');
+        const filterSemester = document.getElementById('filterSemester');
+        const filterKelas = document.getElementById('filterKelas');
+        const filterMapel = document.getElementById('filterMapel');
+        const showStudentsBtn = document.getElementById('show-students-btn');
+        const gradeTableContainer = document.getElementById('grade-table-container');
+        const gradeTableBody = document.getElementById('grade-table-body');
+        const saveGradesBtn = document.getElementById('save-grades-btn');
+
+        // --- Fungsi ---
+        const populateDropdown = (selectEl, data, valueKey, textKey) => {
+            selectEl.innerHTML = `<option value="">- Pilih -</option>`;
+            data.forEach(item => {
+                selectEl.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}</option>`;
             });
+        };
+
+        const calculateFinalGrade = (tugas, uts, uas) => {
+            tugas = parseFloat(tugas) || 0;
+            uts = parseFloat(uts) || 0;
+            uas = parseFloat(uas) || 0;
+
+            const nilaiAkhir = (tugas * 0.2) + (uts * 0.3) + (uas * 0.5);
+            let predikat = 'E';
+            if (nilaiAkhir >= 85) predikat = 'A';
+            else if (nilaiAkhir >= 75) predikat = 'B';
+            else if (nilaiAkhir >= 65) predikat = 'C';
+            else if (nilaiAkhir >= 50) predikat = 'D';
+
+            return { nilai: nilaiAkhir.toFixed(2), predikat: predikat };
+        };
+
+        const renderGradeTable = () => {
+            gradeTableContainer.classList.remove('hidden');
+            gradeTableBody.innerHTML = '';
             
-            render();
+            const selectedKelasId = filterKelas.value;
+            const studentsInClass = students.filter(s => s.kelas === selectedKelasId);
+
+            if(studentsInClass.length === 0) {
+                gradeTableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Tidak ada siswa di kelas ini.</td></tr>`;
+                return;
+            }
+
+            const gradeKey = `${filterTahun.value}_${filterSemester.value}_${selectedKelasId}_${filterMapel.value}`;
+            const gradesForThisClass = grades[gradeKey] || {};
+
+            studentsInClass.forEach((student, index) => {
+                const studentGrade = gradesForThisClass[student.id] || {};
+                const finalGrade = calculateFinalGrade(studentGrade.tugas, studentGrade.uts, studentGrade.uas);
+
+                gradeTableBody.innerHTML += `
+                    <tr class="border-b" data-student-id="${student.id}">
+                        <td class="px-4 py-2">${index + 1}</td>
+                        <td class="px-4 py-2 font-medium">${student.nama}</td>
+                        <td><input type="number" class="grade-input tugas" min="0" max="100" value="${studentGrade.tugas || ''}"></td>
+                        <td><input type="number" class="grade-input uts" min="0" max="100" value="${studentGrade.uts || ''}"></td>
+                        <td><input type="number" class="grade-input uas" min="0" max="100" value="${studentGrade.uas || ''}"></td>
+                        <td><input type="text" class="grade-input nilai-akhir bg-gray-100" value="${finalGrade.nilai}" readonly></td>
+                        <td><input type="text" class="grade-input predikat bg-gray-100" value="${finalGrade.predikat}" readonly></td>
+                    </tr>
+                `;
+            });
+        };
+        
+        // --- Event Listeners ---
+        showStudentsBtn.addEventListener('click', renderGradeTable);
+
+        gradeTableBody.addEventListener('input', e => {
+            if (e.target.classList.contains('grade-input')) {
+                const row = e.target.closest('tr');
+                const tugas = row.querySelector('.tugas').value;
+                const uts = row.querySelector('.uts').value;
+                const uas = row.querySelector('.uas').value;
+                const finalGrade = calculateFinalGrade(tugas, uts, uas);
+
+                row.querySelector('.nilai-akhir').value = finalGrade.nilai;
+                row.querySelector('.predikat').value = finalGrade.predikat;
+            }
         });
+
+        saveGradesBtn.addEventListener('click', () => {
+            const gradeKey = `${filterTahun.value}_${filterSemester.value}_${filterKelas.value}_${filterMapel.value}`;
+            let newGradesForClass = {};
+            
+            const rows = gradeTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const studentId = row.dataset.studentId;
+                if(studentId) {
+                     newGradesForClass[studentId] = {
+                        tugas: row.querySelector('.tugas').value,
+                        uts: row.querySelector('.uts').value,
+                        uas: row.querySelector('.uas').value,
+                     };
+                }
+            });
+
+            grades[gradeKey] = newGradesForClass;
+            localStorage.setItem(GRADES_KEY, JSON.stringify(grades));
+            App.helpers.showToast('Semua nilai berhasil disimpan!');
+        });
+        
+        // --- Inisialisasi ---
+        populateDropdown(filterTahun, academicYears, 'tahun', 'tahun');
+        populateDropdown(filterSemester, semesters, 'semester', 'semester');
+        populateDropdown(filterKelas, classes, 'id', 'nama');
+        populateDropdown(filterMapel, subjects, 'id', 'nama');
+    });
     </script>
 </body>
 </html>

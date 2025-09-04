@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutasi Pegawai - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .form-input { 
+            width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB; 
+            padding: 0.5rem 0.75rem; font-size: 0.875rem; 
+        }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #4B5563; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Mutasi Pegawai</h1>
+                <p class="text-gray-600 mt-1">Catat dan kelola riwayat mutasi pegawai.</p>
+            </header>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Histori Mutasi</h3>
+                    <button id="addBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>Catat Mutasi Baru
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3">Tanggal Efektif</th>
+                                <th class="px-6 py-3">Nama Pegawai</th>
+                                <th class="px-6 py-3">Jenis Mutasi</th>
+                                <th class="px-6 py-3">Keterangan</th>
+                                <th class="px-6 py-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit Mutasi -->
+    <div id="data-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-4">Catat Mutasi Baru</h3>
+            <form id="mutationForm">
+                <input type="hidden" id="mutationId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="pegawai" class="form-label font-semibold">Pegawai</label>
+                        <select id="pegawai" class="form-input" required></select>
+                    </div>
+                    <div>
+                        <label for="jenisMutasi" class="form-label font-semibold">Jenis Mutasi</label>
+                        <select id="jenisMutasi" class="form-input" required>
+                            <option value="">- Pilih Jenis -</option>
+                            <option value="Promosi">Promosi</option>
+                            <option value="Demosi">Demosi</option>
+                            <option value="Rotasi">Rotasi</option>
+                            <option value="Pemberhentian">Pemberhentian</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tanggalEfektif" class="form-label font-semibold">Tanggal Efektif</label>
+                        <input type="date" id="tanggalEfektif" class="form-input" required>
+                    </div>
+                    <div>
+                        <label for="noSk" class="form-label font-semibold">Nomor SK</label>
+                        <input type="text" id="noSk" class="form-input" placeholder="Nomor SK Mutasi">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="keterangan" class="form-label font-semibold">Keterangan / Detail Mutasi</label>
+                        <textarea id="keterangan" class="form-input h-24" placeholder="Contoh: Dipromosikan menjadi Kepala Jurusan TJKT"></textarea>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end pt-6 mt-4 border-t">
+                    <button type="button" class="cancel-modal-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg mr-2">Batal</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="delete-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+            <ion-icon name="warning-outline" class="text-5xl text-yellow-500 mx-auto"></ion-icon>
+            <h3 class="text-xl font-semibold mt-4">Anda Yakin?</h3>
+            <p class="text-gray-600 my-2">Riwayat mutasi ini akan dihapus permanen.</p>
+            <div class="flex justify-center gap-4 mt-6">
+                <button class="cancel-delete-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">Batal</button>
+                <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const addBtn = document.getElementById('addBtn');
+        const modal = document.getElementById('data-modal');
+        const form = document.getElementById('mutationForm');
+        const tableBody = document.getElementById('tableBody');
+        const pegawaiSelect = document.getElementById('pegawai');
+        const modalTitle = document.getElementById('modalTitle');
+        const mutationIdInput = document.getElementById('mutationId');
+        
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        let mutationIdToDelete = null;
+
+        const TEACHER_KEY = 'schoolTeachers';
+        const MUTATION_KEY = 'schoolTeacherMutations';
+
+        const teachers = JSON.parse(localStorage.getItem(TEACHER_KEY)) || [];
+        let mutations = JSON.parse(localStorage.getItem(MUTATION_KEY)) || [];
+
+        const populatePegawaiDropdown = () => {
+            pegawaiSelect.innerHTML = '<option value="">- Pilih Pegawai -</option>';
+            teachers.forEach(teacher => {
+                pegawaiSelect.innerHTML += `<option value="${teacher.id}">${teacher.nama}</option>`;
+            });
+        };
+
+        const renderTable = () => {
+            tableBody.innerHTML = '';
+            const sortedMutations = mutations.sort((a, b) => new Date(b.tanggalEfektif) - new Date(a.tanggalEfektif));
+            
+            if (sortedMutations.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4">Belum ada riwayat mutasi.</td></tr>`;
+                return;
+            }
+            sortedMutations.forEach(mutation => {
+                const teacher = teachers.find(t => t.id === mutation.pegawaiId);
+                tableBody.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">${mutation.tanggalEfektif}</td>
+                        <td class="px-6 py-4 font-medium text-gray-900">${teacher ? teacher.nama : 'Pegawai tidak ditemukan'}</td>
+                        <td class="px-6 py-4">${mutation.jenisMutasi}</td>
+                        <td class="px-6 py-4 text-xs">${mutation.keterangan || ''}<br><span class="text-gray-500">SK: ${mutation.noSk || '-'}</span></td>
+                        <td class="px-6 py-4 flex items-center space-x-3 text-lg">
+                            <button class="edit-btn text-gray-600 hover:text-blue-600" data-id="${mutation.id}" title="Edit"><ion-icon name="create-outline"></ion-icon></button>
+                            <button class="delete-btn text-gray-600 hover:text-red-600" data-id="${mutation.id}" title="Hapus"><ion-icon name="trash-outline"></ion-icon></button>
+                        </td>
+                    </tr>`;
+            });
+        };
+        
+        const openModal = (id = null) => {
+            form.reset();
+            if (id) {
+                // Mode Edit
+                modalTitle.textContent = 'Edit Data Mutasi';
+                const mutation = mutations.find(m => m.id === id);
+                mutationIdInput.value = mutation.id;
+                document.getElementById('pegawai').value = mutation.pegawaiId;
+                document.getElementById('jenisMutasi').value = mutation.jenisMutasi;
+                document.getElementById('tanggalEfektif').value = mutation.tanggalEfektif;
+                document.getElementById('noSk').value = mutation.noSk;
+                document.getElementById('keterangan').value = mutation.keterangan;
+            } else {
+                // Mode Tambah
+                modalTitle.textContent = 'Catat Mutasi Baru';
+                mutationIdInput.value = '';
+            }
+            modal.classList.remove('hidden');
+        };
+        
+        const closeModal = () => modal.classList.add('hidden');
+
+        addBtn.addEventListener('click', () => openModal());
+        modal.addEventListener('click', e => {
+            if (e.target.classList.contains('cancel-modal-btn') || e.target === modal) {
+                closeModal();
+            }
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const id = mutationIdInput.value;
+            const mutationData = {
+                pegawaiId: document.getElementById('pegawai').value,
+                jenisMutasi: document.getElementById('jenisMutasi').value,
+                tanggalEfektif: document.getElementById('tanggalEfektif').value,
+                noSk: document.getElementById('noSk').value,
+                keterangan: document.getElementById('keterangan').value,
+            };
+
+            if (id) { // Update
+                const index = mutations.findIndex(m => m.id === id);
+                mutations[index] = { ...mutations[index], ...mutationData };
+            } else { // Create
+                mutationData.id = `M${Date.now()}`;
+                mutations.push(mutationData);
+            }
+
+            localStorage.setItem(MUTATION_KEY, JSON.stringify(mutations));
+            App.helpers.showToast('Data mutasi berhasil disimpan!');
+            renderTable();
+            closeModal();
+        });
+
+        // --- Logika Hapus dengan Modal Konfirmasi ---
+        const openDeleteModal = (id) => {
+            mutationIdToDelete = id;
+            deleteModal.classList.remove('hidden');
+        };
+        const closeDeleteModal = () => {
+            mutationIdToDelete = null;
+            deleteModal.classList.add('hidden');
+        };
+
+        tableBody.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const id = btn.dataset.id;
+            if (btn.classList.contains('edit-btn')) {
+                openModal(id);
+            }
+            if (btn.classList.contains('delete-btn')) {
+                openDeleteModal(id);
+            }
+        });
+        
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('cancel-delete-btn') || e.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (mutationIdToDelete) {
+                mutations = mutations.filter(m => m.id !== mutationIdToDelete);
+                localStorage.setItem(MUTATION_KEY, JSON.stringify(mutations));
+                App.helpers.showToast('Data berhasil dihapus.', 'error');
+                renderTable();
+                closeDeleteModal();
+            }
+        });
+        
+        // Inisialisasi
+        populatePegawaiDropdown();
+        renderTable();
+    });
+    </script>
+</body>
+</html>
+

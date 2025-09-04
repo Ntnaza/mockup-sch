@@ -30,10 +30,10 @@ function buildSidebar() {
                         <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
                     </button>
                     <div class="sidebar-submenu">
-                        <a href="../master_data/guru.html" class="sidebar-link" data-page="data_pegawai">Data Pegawai</a>
-                        <a href="#" class="sidebar-link">Tugas Pegawai</a>
-                        <a href="#" class="sidebar-link">Pelaksanaan Tugas Harian</a>
-                        <a href="#" class="sidebar-link">Mutasi Pegawai</a>
+                        <a href="../kepegawaian/guru.html" class="sidebar-link" data-page="data_pegawai">Data Pegawai</a>
+                        <a href="../kepegawaian/tugas_pegawai.html" class="sidebar-link" data-page="tugas_pegawai">Tugas Pegawai</a>
+                        <a href="../kepegawaian/absensi_guru.html" class="sidebar-link" data-page="absensi_guru">Absensi Pegawai</a>
+                        <a href="../kepegawaian/mutasi_pegawai.html" class="sidebar-link" data-page="mutasi_pegawai">Mutasi Pegawai</a>
                     </div>
                 </div>
                 
@@ -50,6 +50,7 @@ function buildSidebar() {
                         <a href="../akademik/paket_keahlian.html" class="sidebar-link">Paket Keahlian</a>
                         <a href="../akademik/mapel.html" class="sidebar-link">Mata Pelajaran</a>
                         <a href="../akademik/ekstrakurikuler.html" class="sidebar-link">Ekstrakurikuler</a>
+                        <a href="../master_data/ruangan.html" class="sidebar-link">Ruangan</a>
                     </div>
                 </div>
                 
@@ -192,6 +193,3 @@ function buildSidebar() {
 }
 
 document.addEventListener('DOMContentLoaded', buildSidebar);
-
-
-

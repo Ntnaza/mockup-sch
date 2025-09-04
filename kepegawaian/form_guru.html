@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Data Guru - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .form-input { 
+            width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB; 
+            padding: 0.5rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease;
+        }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #4B5563; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <!-- ===== STRUKTUR MAIN DISAMAKAN DENGAN form_siswa.html ===== -->
+        <main class="flex-1 flex flex-col p-6 md:p-10 overflow-y-auto">
+            <!-- Header Halaman (sekarang di dalam main) -->
+            <header class="flex-shrink-0 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 id="formTitle" class="text-3xl font-bold text-gray-900">Formulir Data Guru</h1>
+                    <p class="text-gray-600 mt-1">Lengkapi data guru pada form di bawah ini.</p>
+                </div>
+                <div>
+                    <a href="guru.html" class="bg-white hover:bg-gray-100 border border-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Batal</a>
+                    <button id="saveBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg ml-2 transition">Simpan</button>
+                </div>
+            </header>
+
+            <!-- Form Konten dalam Card Putih (sekarang di dalam main) -->
+            <div class="mt-8 bg-white rounded-xl shadow-lg flex-grow p-8">
+                <form id="guruForm" class="w-full">
+                    <input type="hidden" id="id">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-6">
+                        <!-- Kolom 1: Foto & TTD -->
+                        <div class="space-y-6 lg:col-span-1">
+                           <div>
+                               <label class="form-label font-semibold">Pas Foto</label>
+                               <img id="previewFoto" src="https://placehold.co/400x533/e2e8f0/64748b?text=Foto+Pegawai" alt="Foto Guru" class="w-48 h-64 rounded-lg object-cover border bg-gray-50 mb-2">
+                    <input type="file" id="foto" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                           </div>
+                           <div>
+                               <label class="form-label font-semibold">Tandatangan</label>
+                               <img id="previewTtd" src="https://placehold.co/400x200/e2e8f0/64748b?text=Tanda+Tangan" alt="Tanda Tangan" class="w-full h-32 rounded-lg object-contain border bg-gray-50 mb-2">
+                    <input type="file" id="foto" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                           </div>
+                        </div>
+
+                        <!-- Kolom 2: Data Diri -->
+                        <div class="space-y-4 lg:col-span-1">
+                           <div><label class="form-label">Nama Lengkap</label><input type="text" id="nama" class="form-input"></div>
+                           <div><label class="form-label">Gelar Depan</label><input type="text" id="gelarDepan" class="form-input"></div>
+                           <div><label class="form-label">Gelar Belakang</label><input type="text" id="gelarBelakang" class="form-input"></div>
+                           <div><label class="form-label">Kewarganegaraan</label><div class="flex gap-4 pt-1"><label><input type="radio" name="kewarganegaraan" value="WNI" class="mr-1"> WNI</label><label><input type="radio" name="kewarganegaraan" value="WNA" class="mr-1"> WNA</label></div></div>
+                           <div><label class="form-label">NIK/No. Passport</label><input type="text" id="nik" class="form-input"></div>
+                           <div><label class="form-label">NIY/NIGK</label><input type="text" id="niy" class="form-input"></div>
+                           <div><label class="form-label">NUPTK</label><input type="text" id="nuptk" class="form-input"></div>
+                           <div><label class="form-label">NIP</label><input type="text" id="nip" class="form-input"></div>
+                           <div><label class="form-label">NPWP</label><input type="text" id="npwp" class="form-input"></div>
+                        </div>
+
+                        <!-- Kolom 3: Data Pribadi -->
+                         <div class="space-y-4 lg:col-span-1">
+                            <div><label class="form-label">Tempat Lahir</label><input type="text" id="tempatLahir" class="form-input"></div>
+                            <div><label class="form-label">Tanggal Lahir</label><input type="date" id="tanggalLahir" class="form-input"></div>
+                            <div><label class="form-label">Jenis Kelamin</label><div class="flex gap-4 pt-1"><label><input type="radio" name="jenisKelamin" value="L" class="mr-1"> Laki-laki</label><label><input type="radio" name="jenisKelamin" value="P" class="mr-1"> Perempuan</label></div></div>
+                            <div><label class="form-label">Agama</label><select id="agama" class="form-input"><option>Islam</option><option>Kristen</option><option>Katolik</option><option>Hindu</option><option>Buddha</option><option>Konghucu</option></select></div>
+                            <div><label class="form-label">Nama Ibu Kandung</label><input type="text" id="namaIbu" class="form-input"></div>
+                            <div><label class="form-label">Status Pernikahan</label><select id="statusPernikahan" class="form-input"><option value="">- Pilih -</option><option>Belum Kawin</option><option>Kawin</option><option>Janda/Duda</option></select></div>
+                            <div><label class="form-label">Nama Suami/Istri</label><input type="text" id="namaPasangan" class="form-input"></div>
+                            <div><label class="form-label">Jumlah Anak</label><input type="number" id="jumlahAnak" class="form-input"></div>
+                        </div>
+                        
+                        <!-- Kolom 4: Data Alamat -->
+                        <div class="space-y-4 lg:col-span-1">
+                            <div><label class="form-label">Alamat</label><textarea id="alamat" class="form-input h-20"></textarea></div>
+                            <div><label class="form-label">Kecamatan</label><select id="kecamatan" class="form-input"><option value="">- Pilih -</option></select></div>
+                            <div><label class="form-label">Desa</label><select id="desa" class="form-input" disabled><option value="">- Pilih Kecamatan -</option></select></div>
+                            <div><label class="form-label">Kabupaten</label><input type="text" id="kabupaten" class="form-input bg-gray-100" value="Cianjur" readonly></div>
+                            <div><label class="form-label">Provinsi</label><input type="text" id="provinsi" class="form-input bg-gray-100" value="Jawa Barat" readonly></div>
+                            <div><label class="form-label">Kode Pos</label><input type="text" id="kodePos" class="form-input"></div>
+                            <div><label class="form-label">Kontak</label><input type="text" id="kontak" class="form-input"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const saveBtn = document.getElementById('saveBtn');
+        const formTitle = document.getElementById('formTitle');
+        const fotoInput = document.getElementById('foto');
+        const previewFoto = document.getElementById('previewFoto');
+        const ttdInput = document.getElementById('ttd');
+        const previewTtd = document.getElementById('previewTtd');
+        const KEY = 'schoolTeachers';
+        
+        let teachers = JSON.parse(localStorage.getItem(KEY)) || [];
+        let currentId = null;
+
+        const wilayahData = { "Cianjur": ["Cianjur Kota", "Cikalongkulon", "Cilaku"], "Warungkondang": ["Bunisari", "Ciwalen", "Mekarsari"], "Gekbrong": ["Cikahuripan", "Gekbrong", "Kebonpeuteuy"] };
+        const kecamatanSelect = document.getElementById('kecamatan');
+        const desaSelect = document.getElementById('desa');
+        Object.keys(wilayahData).forEach(kec => kecamatanSelect.innerHTML += `<option value="${kec}">${kec}</option>`);
+        kecamatanSelect.addEventListener('change', () => {
+            desaSelect.innerHTML = '<option value="">- Pilih Desa -</option>';
+            desaSelect.disabled = true;
+            if (kecamatanSelect.value) {
+                wilayahData[kecamatanSelect.value].forEach(desa => desaSelect.innerHTML += `<option value="${desa}">${desa}</option>`);
+                desaSelect.disabled = false;
+            }
+        });
+
+        const handleImagePreview = (input, preview) => {
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => { preview.src = event.target.result; };
+                    reader.readAsDataURL(file);
+                }
+            });
+        };
+        handleImagePreview(fotoInput, previewFoto);
+        handleImagePreview(ttdInput, previewTtd);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+
+        const populateForm = (id) => {
+            const data = teachers.find(t => t.id === id);
+            if (!data) return;
+            currentId = id;
+            Object.keys(data).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                     if (input.type === 'radio') {
+                        const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+                        if(radio) radio.checked = true;
+                    } else {
+                        input.value = data[key];
+                    }
+                }
+            });
+            if (data.kecamatan) {
+                kecamatanSelect.value = data.kecamatan;
+                kecamatanSelect.dispatchEvent(new Event('change'));
+                if(data.desa) desaSelect.value = data.desa;
+            }
+            if (data.fotoData) previewFoto.src = data.fotoData;
+            if (data.ttdData) previewTtd.src = data.ttdData;
+        };
+        
+        const saveForm = (e) => {
+            e.preventDefault();
+             const getBase64 = file => new Promise((resolve) => {
+                if (!file) { resolve(null); return; }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => resolve(null);
+            });
+
+            Promise.all([
+                getBase64(fotoInput.files[0]),
+                getBase64(ttdInput.files[0])
+            ]).then(([fotoData, ttdData]) => {
+                let existingData = {};
+                if(currentId) existingData = teachers.find(t => t.id === currentId) || {};
+                
+                const allFieldIds = ['nama', 'gelarDepan', 'gelarBelakang', 'nik', 'niy', 'nuptk', 'nip', 'npwp', 'tempatLahir', 'tanggalLahir', 'agama', 'namaIbu', 'statusPernikahan', 'namaPasangan', 'jumlahAnak', 'alamat', 'kecamatan', 'desa', 'kabupaten', 'provinsi', 'kodePos', 'kontak'];
+                
+                const teacherData = {
+                    id: currentId || `G${Date.now()}`,
+                    ...allFieldIds.reduce((obj, id) => {
+                        const el = document.getElementById(id);
+                        if(el) obj[id] = el.value;
+                        return obj;
+                    }, {}),
+                    kewarganegaraan: document.querySelector('input[name="kewarganegaraan"]:checked')?.value || '',
+                    jenisKelamin: document.querySelector('input[name="jenisKelamin"]:checked')?.value || '',
+                    tipePegawai: 'Pendidik', status: 'Aktif', jmlJam: existingData.jmlJam || 0,
+                    fotoData: fotoData || existingData.fotoData || previewFoto.src,
+                    ttdData: ttdData || existingData.ttdData || previewTtd.src
+                };
+
+                if (currentId) {
+                    const index = teachers.findIndex(t => t.id === currentId);
+                    teachers[index] = teacherData;
+                } else {
+                    teachers.push(teacherData);
+                }
+                
+                localStorage.setItem(KEY, JSON.stringify(teachers));
+                App.helpers.showToast('Data guru berhasil disimpan!');
+                setTimeout(() => { window.location.href = 'guru.html'; }, 1500);
+            });
+        };
+
+        if (editId) {
+            formTitle.textContent = 'Formulir Ubah Guru';
+            populateForm(editId);
+        } else {
+            formTitle.textContent = 'Formulir Tambah Guru';
+        }
+
+        saveBtn.addEventListener('click', saveForm);
+    });
+    </script>
+</body>
+</html>
+

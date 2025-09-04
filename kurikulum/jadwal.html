@@ -7,214 +7,383 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
     <style>
-        .modal { transition: opacity 0.25s ease; }
         .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
         .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .schedule-cell {
+            height: 80px;
+            vertical-align: top;
+            padding: 4px;
+            border: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+        .lesson-card, .schedule-entry {
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: grab;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .lesson-card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .dragging {
+            opacity: 0.6;
+            transform: scale(0.98);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .drag-over {
+            background-color: #e0e7ff !important;
+            border: 2px dashed #6366f1;
+        }
+        #trash-can.drag-over {
+            background-color: #fecaca;
+            border-color: #b91c1c;
+        }
+
+        /* ===== Style untuk Print yang Disempurnakan ===== */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-header {
+                display: flex !important;
+                align-items: center;
+                border-bottom: 2px solid black;
+                padding-bottom: 1rem;
+                margin-bottom: 1rem;
+            }
+            .print-header img {
+                width: 70px;
+                height: 70px;
+            }
+            .print-header .school-info {
+                margin-left: 1rem;
+            }
+            .print-header h1 {
+                font-size: 18px; font-weight: bold;
+            }
+            .print-header p {
+                font-size: 12px;
+            }
+            .print-title-container {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+            .print-title-container h2 {
+                font-size: 16px; font-weight: bold;
+            }
+            .print-title-container h3 {
+                font-size: 14px;
+            }
+            table, th, td {
+                border: 1px solid black !important;
+            }
+            .schedule-cell, .schedule-cell.header {
+                height: auto;
+                font-size: 9pt;
+                padding: 5px;
+            }
+            .schedule-entry {
+                background-color: transparent !important;
+                border: 1px solid #ddd !important;
+                color: black !important;
+                box-shadow: none;
+                font-size: 8pt;
+                padding: 4px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="flex h-screen">
-        <div id="sidebar-placeholder"></div>
+        <div id="sidebar-placeholder" class="no-print"></div>
         
-        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+        <main class="flex-1 overflow-y-auto p-6 md:p-10 no-print">
             <header>
                 <h1 class="text-3xl font-bold text-gray-900">Jadwal Pelajaran</h1>
-                <p class="text-gray-600 mt-1">Kelola jadwal pelajaran per kelas dan per guru.</p>
+                <p class="text-gray-600 mt-1">Susun jadwal dengan menyeret pelajaran dari panel kanan ke tabel jadwal.</p>
             </header>
+            
             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <div class="flex items-center gap-4">
-                        <h3 class="text-xl font-semibold text-gray-800">Filter Jadwal</h3>
-                        <select id="filterKelas" class="border rounded py-2 px-3 text-sm">
-                            <option value="">Semua Kelas</option>
-                        </select>
+                <!-- Filter & Tombol Cetak -->
+                <div class="flex flex-wrap gap-4 items-end mb-6 border-b pb-6 no-print">
+                    <div>
+                        <label for="filterTahun" class="text-sm font-semibold text-gray-700">Tahun Pelajaran</label>
+                        <select id="filterTahun" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
                     </div>
-                    <button id="addBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center self-end md:self-center">
-                        <ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Jadwal
-                    </button>
+                    <div>
+                        <label for="filterSemester" class="text-sm font-semibold text-gray-700">Semester</label>
+                        <select id="filterSemester" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                    </div>
+                     <div>
+                        <label for="filterKelas" class="text-sm font-semibold text-gray-700">Kelas</label>
+                        <select id="filterKelas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                    </div>
+                    <div class="ml-auto">
+                        <button id="print-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm">
+                            <ion-icon name="print-outline" class="mr-2"></ion-icon>Cetak Jadwal
+                        </button>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">Hari</th>
-                                <th scope="col" class="px-6 py-3">Waktu</th>
-                                <th scope="col" class="px-6 py-3">Kelas</th>
-                                <th scope="col" class="px-6 py-3">Mata Pelajaran</th>
-                                <th scope="col" class="px-6 py-3">Guru</th>
-                                <th scope="col" class="px-6 py-3">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                    </table>
+
+                <!-- Area yang akan dicetak -->
+                <div id="print-area">
+                    <!-- Header untuk Print -->
+                    <div class="hidden print-header">
+                        <img src="https://placehold.co/100x100/ccc/000?text=Logo" alt="Logo Sekolah">
+                        <div class="school-info">
+                            <h1>SMK NURUL ISLAM CIANJUR</h1>
+                            <p>Jl. Raya Cianjur Bandung Km. 09 Rt/Rw 001/007 Desa Selajambe</p>
+                        </div>
+                    </div>
+                    <div class="hidden print-title-container">
+                        <h2>JADWAL PELAJARAN</h2>
+                        <h3 id="print-title"></h3>
+                    </div>
+
+                    <!-- Konten Utama: Jadwal & Panel Pelajaran -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <!-- Kiri: Tabel Jadwal -->
+                        <div class="lg:col-span-3 overflow-x-auto">
+                            <table class="w-full border-collapse text-center">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="p-2 border w-24">Jam</th>
+                                        <th class="p-2 border">Senin</th>
+                                        <th class="p-2 border">Selasa</th>
+                                        <th class="p-2 border">Rabu</th>
+                                        <th class="p-2 border">Kamis</th>
+                                        <th class="p-2 border">Jumat</th>
+                                        <th class="p-2 border">Sabtu</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedule-body"></tbody>
+                            </table>
+                        </div>
+                        <!-- Kanan: Panel Pelajaran (tidak dicetak) -->
+                        <div class="lg:col-span-1 no-print">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-bold text-gray-800">Daftar Pelajaran</h4>
+                                <button id="add-lesson-btn" class="text-blue-600 hover:text-blue-800" title="Tambah Pelajaran Baru">
+                                    <ion-icon name="add-circle-outline" class="text-2xl"></ion-icon>
+                                </button>
+                            </div>
+                            <div id="lesson-palette" class="p-2 border rounded-lg bg-gray-50 h-[32rem] overflow-y-auto">
+                            </div>
+                            <div id="trash-can" class="mt-4 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center text-gray-500 transition-colors">
+                                <ion-icon name="trash-outline" class="text-3xl mx-auto"></ion-icon>
+                                <p class="text-xs mt-1">Seret ke sini untuk menghapus</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal -->
-    <div id="data-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h3 id="modalTitle" class="text-2xl font-bold mb-4">Tambah Jadwal Baru</h3>
-            <form id="dataForm">
-                <input type="hidden" id="dataId">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="mb-4">
-                        <label for="hari" class="block text-gray-700 text-sm font-bold mb-2">Hari</label>
-                        <select id="hari" class="shadow border rounded w-full py-2 px-3" required>
-                            <option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option>
-                        </select>
+    <!-- Modal Tambah Pelajaran ke Panel -->
+    <div id="lesson-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 class="text-2xl font-bold mb-4">Tambah Pelajaran</h3>
+            <form id="lesson-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="lesson-subject" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+                        <select id="lesson-subject" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></select>
                     </div>
-                    <div class="mb-4">
-                        <label for="waktu" class="block text-gray-700 text-sm font-bold mb-2">Waktu (Jam Mulai - Selesai)</label>
-                        <input type="text" id="waktu" class="shadow border rounded w-full py-2 px-3" placeholder="e.g., 07:00 - 08:30" required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="kelas" class="block text-gray-700 text-sm font-bold mb-2">Kelas</label>
-                        <select id="kelas" class="shadow border rounded w-full py-2 px-3" required></select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="mapel" class="block text-gray-700 text-sm font-bold mb-2">Mata Pelajaran</label>
-                        <select id="mapel" class="shadow border rounded w-full py-2 px-3" required></select>
-                    </div>
-                    <div class="mb-4 col-span-1 md:col-span-2">
-                        <label for="guru" class="block text-gray-700 text-sm font-bold mb-2">Guru Pengajar</label>
-                        <select id="guru" class="shadow border rounded w-full py-2 px-3" required></select>
+                    <div>
+                        <label for="lesson-teacher" class="block text-sm font-medium text-gray-700">Guru Pengajar</label>
+                        <select id="lesson-teacher" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required></select>
                     </div>
                 </div>
-                <div class="flex items-center justify-end pt-4 mt-4 border-t">
-                    <button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button>
-                    <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan</button>
+                <div class="flex items-center justify-end pt-6 mt-4 border-t gap-2">
+                    <button type="button" class="cancel-lesson-modal-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">Batal</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Tambahkan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
-
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50 no-print"></div>
     <script src="../assets/app.js" defer></script>
     <script src="../assets/sidebar-sub.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const addBtn = document.getElementById('addBtn');
-            const modal = document.getElementById('data-modal');
-            const form = document.getElementById('dataForm');
-            const tableBody = document.getElementById('tableBody');
-            const modalTitle = document.getElementById('modalTitle');
-            const idInput = document.getElementById('dataId');
-            const filterKelas = document.getElementById('filterKelas');
+    document.addEventListener('DOMContentLoaded', () => {
+        // ... (semua kode JavaScript sebelumnya tetap sama)
+        const loadMasterData = (key, initialDataFn) => {
+            let data = JSON.parse(localStorage.getItem(key));
+            if (!data || data.length === 0) { data = initialDataFn(); localStorage.setItem(key, JSON.stringify(data)); }
+            return data;
+        };
+
+        const academicYears = loadMasterData('schoolAcademicYears', () => [{ id: 'AY02', tahun: '2025/2026', status: 'Aktif' }]);
+        const semesters = loadMasterData('schoolSemesters', () => [{ id: 'SEM01', semester: 'Ganjil', status: 'Aktif' }]);
+        const classes = loadMasterData('schoolClasses', () => [{ id: 'KLS-X1', nama: 'Kelas X-1' }]);
+        const subjects = loadMasterData('schoolSubjects', () => [{id:'SUB-01', nama:'Matematika Wajib'}, {id:'SUB-02', nama:'Bahasa Indonesia'}, {id:'SUB-03', nama: 'Sejarah Indonesia'}]);
+        const teachers = loadMasterData('schoolTeachers', () => [{id:'G02', nama:'Bambang S.'}, {id:'G03', nama:'Siti Nurhaliza'}]);
+        const LESSON_ASSIGNMENT_KEY = 'schoolLessonAssignments';
+        let lessonAssignments = loadMasterData(LESSON_ASSIGNMENT_KEY, () => [{ id: 'LA-1', subjectId: 'SUB-01', teacherId: 'G02' }, { id: 'LA-2', subjectId: 'SUB-02', teacherId: 'G03' }, { id: 'LA-3', subjectId: 'SUB-03', teacherId: 'G03' }]);
+        const SCHEDULE_KEY = 'schoolSchedules';
+        let schedules = JSON.parse(localStorage.getItem(SCHEDULE_KEY)) || {};
+
+        const filterTahun = document.getElementById('filterTahun');
+        const filterSemester = document.getElementById('filterSemester');
+        const filterKelas = document.getElementById('filterKelas');
+        const scheduleBody = document.getElementById('schedule-body');
+        const lessonPalette = document.getElementById('lesson-palette');
+        const trashCan = document.getElementById('trash-can');
+        const addLessonBtn = document.getElementById('add-lesson-btn');
+        const lessonModal = document.getElementById('lesson-modal');
+        const lessonForm = document.getElementById('lesson-form');
+        const printBtn = document.getElementById('print-btn');
+        const printTitle = document.getElementById('print-title');
+        let draggedData = null;
+        
+        const colorPalette = [{ bg: 'bg-sky-100', border: 'border-sky-400', text: 'text-sky-800' }, { bg: 'bg-emerald-100', border: 'border-emerald-400', text: 'text-emerald-800' }, { bg: 'bg-amber-100', border: 'border-amber-400', text: 'text-amber-800' }, { bg: 'bg-violet-100', border: 'border-violet-400', text: 'text-violet-800' }, { bg: 'bg-rose-100', border: 'border-rose-400', text: 'text-rose-800' }, { bg: 'bg-cyan-100', border: 'border-cyan-400', text: 'text-cyan-800' }, { bg: 'bg-fuchsia-100', border: 'border-fuchsia-400', text: 'text-fuchsia-800' }, { bg: 'bg-teal-100', border: 'border-teal-400', text: 'text-teal-800' }];
+        const getColorForSubject = (subjectId) => {
+            let hash = 0;
+            if (subjectId.length === 0) return colorPalette[0];
+            for (let i = 0; i < subjectId.length; i++) {
+                const char = subjectId.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0;
+            }
+            return colorPalette[Math.abs(hash % colorPalette.length)];
+        };
+
+        const populateDropdown = (selectEl, data, valueKey, textKey) => {
+            selectEl.innerHTML = `<option value="">- Pilih -</option>`;
+            data.forEach(item => {
+                selectEl.innerHTML += `<option value="${item[valueKey]}">${item[textKey]}</option>`;
+            });
+        };
+
+        const renderLessonPalette = () => {
+            lessonPalette.innerHTML = '';
+            lessonAssignments.forEach(assignment => {
+                const subject = subjects.find(s => s.id === assignment.subjectId);
+                const teacher = teachers.find(t => t.id === assignment.teacherId);
+                if (subject && teacher) {
+                    const color = getColorForSubject(subject.id);
+                    lessonPalette.innerHTML += `<div class="lesson-card border-l-4 ${color.bg} ${color.border}" draggable="true" data-assignment-id="${assignment.id}"><div class="font-bold ${color.text}">${subject.nama}</div><div class="text-xs text-gray-600">${teacher.nama}</div></div>`;
+                }
+            });
+        };
+        
+        const renderSchedule = () => {
+            const selectedTahun = filterTahun.options[filterTahun.selectedIndex]?.text;
+            const selectedSemester = filterSemester.options[filterSemester.selectedIndex]?.text;
+            const selectedKelasId = filterKelas.value;
+            const selectedKelas = classes.find(c => c.id === selectedKelasId);
+            scheduleBody.innerHTML = '';
             
-            const KEY = 'schoolSchedules';
-            const getInitialData = () => [
-                { id: '1', hari: 'Senin', waktu: '07:00 - 08:30', kelas: '10 IPA 1', mapel: 'Matematika', guru: 'Bambang Subagio, S.Kom.' },
-                { id: '2', hari: 'Senin', waktu: '08:30 - 10:00', kelas: '10 IPA 1', mapel: 'Fisika', guru: 'Dr. Indah Permata, M.Pd.' },
-                { id: '3', hari: 'Selasa', waktu: '07:00 - 08:30', kelas: '11 IPS 2', mapel: 'Sejarah', guru: 'Siti Nurhaliza, S.Pd.' },
-            ];
-            let schedules = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
-            const save = () => localStorage.setItem(KEY, JSON.stringify(schedules));
+            printTitle.textContent = `Kelas: ${selectedKelas ? selectedKelas.nama : ''} | T.A: ${selectedTahun} | Semester: ${selectedSemester}`;
 
-            const render = () => {
-                tableBody.innerHTML = '';
-                const filterValue = filterKelas.value;
-                const filteredSchedules = schedules.filter(s => !filterValue || s.kelas === filterValue);
+            if (!selectedTahun || !selectedSemester || !selectedKelasId) {
+                scheduleBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">Pilih filter untuk melihat jadwal.</td></tr>`;
+                return;
+            }
 
-                if (filteredSchedules.length === 0) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Tidak ada jadwal untuk kelas ini.</td></tr>`; return; }
-                
-                // Mengelompokkan berdasarkan hari
-                const groupedByDay = filteredSchedules.reduce((acc, schedule) => {
-                    (acc[schedule.hari] = acc[schedule.hari] || []).push(schedule);
-                    return acc;
-                }, {});
-
-                const daysOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-                daysOrder.forEach(day => {
-                    if (groupedByDay[day]) {
-                        groupedByDay[day].sort((a,b) => a.waktu.localeCompare(b.waktu)).forEach((schedule, index) => {
-                             tableBody.innerHTML += `
-                                <tr class="bg-white border-b hover:bg-gray-50">
-                                    ${index === 0 ? `<td class="px-6 py-4 font-bold text-gray-800 bg-gray-50" rowspan="${groupedByDay[day].length}">${schedule.hari}</td>` : ''}
-                                    <td class="px-6 py-4">${schedule.waktu}</td>
-                                    <td class="px-6 py-4 font-medium text-gray-900">${schedule.kelas}</td>
-                                    <td class="px-6 py-4">${schedule.mapel}</td>
-                                    <td class="px-6 py-4">${schedule.guru}</td>
-                                    <td class="px-6 py-4 flex space-x-3 text-sm">
-                                        <button class="edit-btn font-medium text-blue-600 hover:underline" data-id="${schedule.id}">Edit</button>
-                                        <button class="delete-btn font-medium text-red-600 hover:underline" data-id="${schedule.id}">Hapus</button>
-                                    </td>
-                                </tr>`;
-                        });
+            const scheduleKey = `${filterTahun.value}_${filterSemester.value}_${selectedKelasId}`;
+            const classSchedule = schedules[scheduleKey] || {};
+            
+            for (let jam = 1; jam <= 12; jam++) {
+                let rowHtml = `<tr><td class="schedule-cell header text-sm font-semibold bg-gray-100">Jam ke-${jam}<br><span class="font-normal text-xs text-gray-500">${(jam+6).toString().padStart(2, '0')}:00</span></td>`;
+                ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].forEach(hari => {
+                    const cellKey = `${hari}-${jam}`;
+                    const entry = classSchedule[cellKey];
+                    let cellContent = '';
+                    if (entry) {
+                        const assignment = lessonAssignments.find(la => la.id === entry.assignmentId);
+                        if (assignment) {
+                            const subject = subjects.find(s => s.id === assignment.subjectId);
+                            const teacher = teachers.find(t => t.id === assignment.teacherId);
+                            const color = getColorForSubject(subject.id);
+                            cellContent = `<div class="schedule-entry ${color.bg} border ${color.border} ${color.text}" draggable="true" data-assignment-id="${assignment.id}" data-origin-day="${hari}" data-origin-time="${jam}"><div class="font-bold">${subject ? subject.nama : '?'}</div><div class="text-xs">${teacher ? teacher.nama : '?'}</div></div>`;
+                        }
                     }
+                    rowHtml += `<td class="schedule-cell" data-day="${hari}" data-time="${jam}">${cellContent}</td>`;
                 });
-            };
-
-            const openModal = (mode = 'create', id = null) => {
-                form.reset();
-                if (mode === 'create') {
-                    modalTitle.textContent = 'Tambah Jadwal Baru';
-                    idInput.value = '';
-                } else {
-                    modalTitle.textContent = 'Edit Jadwal';
-                    const schedule = schedules.find(item => item.id === id);
-                    idInput.value = schedule.id;
-                    document.getElementById('hari').value = schedule.hari;
-                    document.getElementById('waktu').value = schedule.waktu;
-                    document.getElementById('kelas').value = schedule.kelas;
-                    document.getElementById('mapel').value = schedule.mapel;
-                    document.getElementById('guru').value = schedule.guru;
-                }
-                modal.classList.remove('hidden');
-            };
-            
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = {
-                    id: idInput.value || Date.now().toString(),
-                    hari: document.getElementById('hari').value,
-                    waktu: document.getElementById('waktu').value,
-                    kelas: document.getElementById('kelas').value,
-                    mapel: document.getElementById('mapel').value,
-                    guru: document.getElementById('guru').value,
-                };
-                if (idInput.value) {
-                    const index = schedules.findIndex(s => s.id === formData.id);
-                    schedules[index] = formData;
-                } else {
-                    schedules.push(formData);
-                }
-                save(); render(); modal.classList.add('hidden');
-                App.helpers.showToast('Jadwal berhasil disimpan!');
-            });
-
-            tableBody.addEventListener('click', (e) => {
-                const id = e.target.dataset.id;
-                if (e.target.classList.contains('edit-btn')) openModal('edit', id);
-                if (e.target.classList.contains('delete-btn')) {
-                    if (confirm('Yakin ingin hapus jadwal ini?')) {
-                        schedules = schedules.filter(s => s.id !== id);
-                        save(); render();
-                        App.helpers.showToast('Jadwal berhasil dihapus!', 'error');
-                    }
-                }
-            });
-            
-            // Isi semua dropdown
-            const populateDropdowns = () => {
-                const kelasSelect = document.getElementById('kelas');
-                const mapelSelect = document.getElementById('mapel');
-                const guruSelect = document.getElementById('guru');
-
-                filterKelas.innerHTML = '<option value="">Semua Kelas</option>' + Object.keys(App.masterData.siswa).map(c => `<option value="${c}">${c}</option>`).join('');
-                kelasSelect.innerHTML = '<option value="">-- Pilih --</option>' + Object.keys(App.masterData.siswa).map(c => `<option value="${c}">${c}</option>`).join('');
-                mapelSelect.innerHTML = '<option value="">-- Pilih --</option>' + App.masterData.mapel.map(s => `<option value="${s}">${s}</option>`).join('');
-                guruSelect.innerHTML = '<option value="">-- Pilih --</option>' + App.masterData.guru.map(g => `<option value="${g.nama}">${g.nama}</option>`).join('');
-            };
-
-            addBtn.addEventListener('click', () => openModal('create'));
-            filterKelas.addEventListener('change', render);
-            
-            populateDropdowns();
-            render();
+                rowHtml += '</tr>';
+                scheduleBody.innerHTML += rowHtml;
+            }
+        };
+        
+        document.addEventListener('dragstart', e => {
+            if (e.target.matches('.lesson-card, .schedule-entry')) {
+                e.target.classList.add('dragging');
+                draggedData = { assignmentId: e.target.dataset.assignmentId, originDay: e.target.dataset.originDay, originTime: e.target.dataset.originTime };
+            }
         });
+        document.addEventListener('dragend', e => { e.target.classList.remove('dragging'); draggedData = null; });
+        document.addEventListener('dragover', e => {
+            const targetCell = e.target.closest('.schedule-cell, #trash-can');
+            if (targetCell) { e.preventDefault(); targetCell.classList.add('drag-over'); }
+        });
+        document.addEventListener('dragleave', e => { e.target.closest('.schedule-cell, #trash-can')?.classList.remove('drag-over'); });
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            const targetCell = e.target.closest('.schedule-cell, #trash-can');
+            if (!targetCell || !draggedData) return;
+            
+            targetCell.classList.remove('drag-over');
+            const scheduleKey = `${filterTahun.value}_${filterSemester.value}_${filterKelas.value}`;
+            if (!schedules[scheduleKey]) schedules[scheduleKey] = {};
+
+            if (draggedData.originDay) {
+                delete schedules[scheduleKey][`${draggedData.originDay}-${draggedData.originTime}`];
+            }
+            if (targetCell.id !== 'trash-can') {
+                schedules[scheduleKey][`${targetCell.dataset.day}-${targetCell.dataset.time}`] = { assignmentId: draggedData.assignmentId };
+            }
+            localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedules));
+            renderSchedule();
+        });
+
+        addLessonBtn.addEventListener('click', () => lessonModal.classList.remove('hidden'));
+        lessonModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('cancel-lesson-modal-btn') || e.target === lessonModal) lessonModal.classList.add('hidden');
+        });
+        lessonForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newAssignment = { id: `LA-${Date.now()}`, subjectId: document.getElementById('lesson-subject').value, teacherId: document.getElementById('lesson-teacher').value };
+            lessonAssignments.push(newAssignment);
+            localStorage.setItem(LESSON_ASSIGNMENT_KEY, JSON.stringify(lessonAssignments));
+            renderLessonPalette();
+            lessonModal.classList.add('hidden');
+            App.helpers.showToast('Pelajaran baru ditambahkan ke panel!');
+        });
+
+        printBtn.addEventListener('click', () => window.print());
+
+        populateDropdown(filterTahun, academicYears, 'tahun', 'tahun');
+        populateDropdown(filterSemester, semesters, 'semester', 'semester');
+        populateDropdown(filterKelas, classes, 'id', 'nama');
+        populateDropdown(document.getElementById('lesson-subject'), subjects, 'id', 'nama');
+        populateDropdown(document.getElementById('lesson-teacher'), teachers, 'id', 'nama');
+        [filterTahun, filterSemester, filterKelas].forEach(el => el.addEventListener('change', renderSchedule));
+        renderLessonPalette();
+        renderSchedule();
+    });
     </script>
 </body>
 </html>
+

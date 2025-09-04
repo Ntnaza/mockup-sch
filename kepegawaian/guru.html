@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Guru - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Master Data Guru</h1>
+                <p class="text-gray-600 mt-1">Kelola data induk seluruh guru dan staf pengajar.</p>
+            </header>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="w-full md:w-1/3">
+                        <input type="text" id="searchGuru" class="border rounded-lg py-2 px-4 text-sm w-full" placeholder="Cari nama atau NIP...">
+                    </div>
+                    <a href="form_guru.html" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm w-full md:w-auto justify-center">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Data Guru
+                    </a>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 w-10">No</th>
+                                <th class="px-6 py-3">Foto</th>
+                                <th class="px-6 py-3">Nama Pegawai</th>
+                                <th class="px-6 py-3">L/P</th>
+                                <th class="px-6 py-3">Tipe Pegawai</th>
+                                <th class="px-6 py-3">Status</th>
+                                <th class="px-6 py-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="delete-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+            <ion-icon name="warning-outline" class="text-5xl text-yellow-500 mx-auto"></ion-icon>
+            <h3 class="text-xl font-semibold mt-4">Anda Yakin?</h3>
+            <p class="text-gray-600 my-2">Data guru ini akan dihapus secara permanen. Tindakan ini tidak bisa dibatalkan.</p>
+            <div class="flex justify-center gap-4 mt-6">
+                <button class="cancel-delete-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">Batal</button>
+                <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tableBody = document.getElementById('tableBody');
+        const searchGuru = document.getElementById('searchGuru');
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        let teacherIdToDelete = null;
+
+        const KEY = 'schoolTeachers';
+        const getInitialData = () => [
+            { id: 'G01', nama: 'Dr. Indah Permata', gelarBelakang: 'M.Pd.', nik: '3203011005100001', npwp: '12.345.678.9-123.000', jenisKelamin: 'P', agama: 'Islam', tempatLahir: 'Jakarta', tanggalLahir: '1975-01-01', kewarganegaraan: 'WNI', namaIbu: 'Siti Aminah', statusPernikahan: 'Kawin', namaPasangan: 'Dr. Budi Santoso', jumlahAnak: '2', alamat: 'Jl. Merdeka No. 10', desa: 'Cianjur Kota', kecamatan: 'Cianjur', kabupaten: 'Cianjur', provinsi: 'Jawa Barat', kodePos: '43211', kontak: '081234567890', status: 'Aktif', tipePegawai: 'Pendidik', jmlJam: 24, nip: '197501012000012001' },
+            { id: 'G02', nama: 'Bambang Subagio', gelarBelakang: 'S.Kom.', nik: '3203022002110002', npwp: '21.435.768.9-321.000', jenisKelamin: 'L', agama: 'Islam', tempatLahir: 'Bandung', tanggalLahir: '1980-02-02', kewarganegaraan: 'WNI', namaIbu: 'Rina Marlina', statusPernikahan: 'Kawin', namaPasangan: 'Dewi Lestari', jumlahAnak: '1', alamat: 'Jl. Pahlawan No. 25', desa: 'Ciwalen', kecamatan: 'Warungkondang', kabupaten: 'Cianjur', provinsi: 'Jawa Barat', kodePos: '43261', kontak: '081298765432', status: 'Aktif', tipePegawai: 'Pendidik', jmlJam: 20, nip: '198002022005011002' },
+        ];
+        
+        let teachers = JSON.parse(localStorage.getItem(KEY));
+        if (!teachers || teachers.length === 0) {
+            teachers = getInitialData();
+            localStorage.setItem(KEY, JSON.stringify(teachers));
+        }
+
+        const render = () => {
+            tableBody.innerHTML = '';
+            const searchTerm = searchGuru.value.toLowerCase();
+            const filteredTeachers = teachers.filter(teacher => 
+                (teacher.nama && teacher.nama.toLowerCase().includes(searchTerm)) ||
+                (teacher.nip && teacher.nip.toLowerCase().includes(searchTerm))
+            );
+
+            if (filteredTeachers.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Data guru tidak ditemukan.</td></tr>`;
+                return;
+            }
+
+            filteredTeachers.forEach((teacher, index) => {
+                // ===== PERUBAHAN UTAMA ADA DI SINI =====
+                tableBody.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 text-center">${index + 1}</td>
+                        <td class="px-6 py-4">
+                            <!-- Mengubah class dari rounded-full menjadi rounded-md dan menambahkan ukuran w-12 h-16 -->
+                            <img src="${teacher.fotoData || 'https://placehold.co/300x400/e2e8f0/64748b?text=Foto'}" alt="Foto ${teacher.nama}" class="w-12 h-16 rounded-md object-cover border">
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                            <div class="font-bold">${teacher.nama || '-'}</div>
+                            <div class="text-xs text-gray-500">NIP/NIY: ${teacher.nip || teacher.niy || '-'}</div>
+                        </td>
+                        <td class="px-6 py-4">${teacher.jenisKelamin || '-'}</td>
+                        <td class="px-6 py-4">${teacher.tipePegawai || 'Pendidik'}</td>
+                        <td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">${teacher.status || 'Aktif'}</span></td>
+                        <td class="px-6 py-4 flex items-center space-x-3 text-lg">
+                            <a href="detail_guru.html?id=${teacher.id}" class="font-medium text-gray-600 hover:text-blue-600" title="Lihat Detail"><ion-icon name="eye-outline"></ion-icon></a>
+                            <a href="form_guru.html?id=${teacher.id}" class="font-medium text-gray-600 hover:text-blue-600" title="Edit"><ion-icon name="create-outline"></ion-icon></a>
+                            <button class="delete-btn font-medium text-gray-600 hover:text-red-600" data-id="${teacher.id}" title="Hapus"><ion-icon name="trash-outline"></ion-icon></button>
+                        </td>
+                    </tr>`;
+            });
+        };
+
+        searchGuru.addEventListener('input', render);
+
+        const openDeleteModal = (id) => {
+            teacherIdToDelete = id;
+            deleteModal.classList.remove('hidden');
+        };
+        const closeDeleteModal = () => {
+            teacherIdToDelete = null;
+            deleteModal.classList.add('hidden');
+        };
+
+        tableBody.addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (btn) {
+                openDeleteModal(btn.dataset.id);
+            }
+        });
+        
+        deleteModal.addEventListener('click', (e) => {
+             if(e.target.classList.contains('cancel-delete-btn') || e.target === deleteModal){
+                 closeDeleteModal();
+             }
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (teacherIdToDelete) {
+                teachers = teachers.filter(t => t.id !== teacherIdToDelete);
+                localStorage.setItem(KEY, JSON.stringify(teachers));
+                render();
+                App.helpers.showToast('Data guru berhasil dihapus!', 'error');
+                closeDeleteModal();
+            }
+        });
+        render();
+    });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Pegawai - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .form-input {
+            width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB;
+            padding: 0.5rem 0.75rem; font-size: 0.875rem; transition: all 0.2s ease;
+        }
+        .form-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 1px #3B82F6; outline: none; }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #4B5563; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 flex flex-col overflow-y-auto p-6 md:p-10">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+                <!-- Kolom Kiri: Formulir -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg flex flex-col">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-3">Formulir</h3>
+                    <form id="taskForm" class="flex flex-col flex-grow">
+                        <input type="hidden" id="taskId">
+                        <div class="space-y-4 flex-grow">
+                            <div>
+                                <label for="tahunPelajaran" class="form-label">Tahun Pelajaran</label>
+                                <input type="text" id="tahunPelajaran" class="form-input bg-gray-100" value="2025/2026" readonly>
+                            </div>
+                            <div>
+                                <label for="semester" class="form-label">Semester</label>
+                                <input type="text" id="semester" class="form-input bg-gray-100" value="Ganjil" readonly>
+                            </div>
+                            <div>
+                                <label for="namaPegawai" class="form-label">Nama Pegawai</label>
+                                <select id="namaPegawai" class="form-input" required></select>
+                            </div>
+                            <div>
+                                <label for="tugasPokok" class="form-label">Tugas Pokok</label>
+                                <select id="tugasPokok" class="form-input">
+                                    <option value="Pendidik">Pendidik</option>
+                                    <option value="Tenaga Kependidikan">Tenaga Kependidikan</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label for="nomorSk" class="form-label">Nomor SK</label>
+                                <input type="text" id="nomorSk" class="form-input" required>
+                            </div>
+                            <div>
+                                <label for="tmt" class="form-label">Terhitung Mulai Tanggal (TMT)</label>
+                                <input type="date" id="tmt" class="form-input" required>
+                            </div>
+                            <div>
+                                <label for="jumlahJam" class="form-label">Jumlah Jam</label>
+                                <input type="number" id="jumlahJam" class="form-input" value="0">
+                            </div>
+                            <div>
+                                <label for="keterangan" class="form-label">Keterangan</label>
+                                <textarea id="keterangan" class="form-input h-24"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex gap-2">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full">Simpan</button>
+                            <button type="button" id="batalBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg w-full">Batal</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Kolom Kanan: Tabel -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Daftar Tugas Pokok</h3>
+                    <div class="bg-cyan-100 border-l-4 border-cyan-500 text-cyan-700 p-4 mb-6" role="alert">
+                        <p class="font-bold">INFORMASI:</p>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            <li>Halaman ini digunakan untuk pemberian <strong>tugas pokok</strong> dan <strong>tugas tambahan pegawai</strong>.</li>
+                            <li>Tugas Pokok Pegawai diatur setiap semester.</li>
+                            <li>Tugas Tambahan diatur setiap semester, klik tombol <ion-icon name="add-circle-outline" class="inline-block align-middle"></ion-icon>.</li>
+                        </ul>
+                    </div>
+
+                     <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3">No</th>
+                                    <th class="px-4 py-3">Nama Pegawai</th>
+                                    <th class="px-4 py-3">Tugas Pokok</th>
+                                    <th class="px-4 py-3">Jumlah Jam</th>
+                                    <th class="px-4 py-3">Keterangan</th>
+                                    <th class="px-4 py-3">Tugas Tambahan</th>
+                                    <th class="px-4 py-3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <!-- ===== PATH DIPERBAIKI (folder 'js' dihilangkan) ===== -->
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('taskForm');
+        const tableBody = document.getElementById('tableBody');
+        const pegawaiSelect = document.getElementById('namaPegawai');
+        const batalBtn = document.getElementById('batalBtn');
+        const taskIdInput = document.getElementById('taskId');
+
+        const TEACHER_KEY = 'schoolTeachers';
+        const TASK_KEY = 'schoolTeacherTasks';
+        
+        const teachers = JSON.parse(localStorage.getItem(TEACHER_KEY)) || [];
+        let tasks = JSON.parse(localStorage.getItem(TASK_KEY)) || [];
+
+        // 1. Isi dropdown pegawai
+        const populatePegawaiDropdown = () => {
+            pegawaiSelect.innerHTML = '<option value="">- Pilih -</option>';
+            teachers.forEach(teacher => {
+                pegawaiSelect.innerHTML += `<option value="${teacher.id}">${teacher.nama} ${teacher.gelarBelakang || ''}</option>`;
+            });
+        };
+
+        // 2. Render tabel
+        const renderTable = () => {
+            tableBody.innerHTML = '';
+            if (tasks.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Belum ada tugas yang ditambahkan.</td></tr>`;
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                const teacher = teachers.find(t => t.id === task.pegawaiId);
+                const teacherName = teacher ? `${teacher.nama} ${teacher.gelarBelakang || ''}` : 'N/A';
+                
+                tableBody.innerHTML += `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-4 py-2">${index + 1}</td>
+                        <td class="px-4 py-2 font-medium">${teacherName}</td>
+                        <td class="px-4 py-2">${task.tugasPokok}</td>
+                        <td class="px-4 py-2 text-center">${task.jumlahJam}</td>
+                        <td class="px-4 py-2 text-xs">
+                            <div>TMT: ${task.tmt}</div>
+                            <div>No. SK: ${task.nomorSk}</div>
+                            <div>${task.keterangan || ''}</div>
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <button class="text-blue-600 hover:text-blue-800" title="Tambah Tugas Tambahan"><ion-icon name="add-circle-outline"></ion-icon></button>
+                        </td>
+                        <td class="px-4 py-2 flex items-center space-x-2 text-lg">
+                            <button class="edit-btn text-gray-600 hover:text-blue-600" data-id="${task.id}" title="Edit"><ion-icon name="create-outline"></ion-icon></button>
+                            <button class="delete-btn text-gray-600 hover:text-red-600" data-id="${task.id}" title="Hapus"><ion-icon name="trash-outline"></ion-icon></button>
+                        </td>
+                    </tr>`;
+            });
+        };
+
+        // 3. Reset form
+        const resetForm = () => {
+            form.reset();
+            taskIdInput.value = '';
+            document.querySelector('button[type="submit"]').textContent = 'Simpan';
+        };
+
+        // 4. Handle Simpan/Update
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = taskIdInput.value;
+            const taskData = {
+                id: id || `T${Date.now()}`,
+                pegawaiId: document.getElementById('namaPegawai').value,
+                tugasPokok: document.getElementById('tugasPokok').value,
+                nomorSk: document.getElementById('nomorSk').value,
+                tmt: document.getElementById('tmt').value,
+                jumlahJam: document.getElementById('jumlahJam').value,
+                keterangan: document.getElementById('keterangan').value,
+            };
+
+            if (id) { // Mode Update
+                const index = tasks.findIndex(t => t.id === id);
+                tasks[index] = taskData;
+            } else { // Mode Create
+                tasks.push(taskData);
+            }
+
+            localStorage.setItem(TASK_KEY, JSON.stringify(tasks));
+            App.helpers.showToast('Data tugas berhasil disimpan!');
+            resetForm();
+            renderTable();
+        });
+        
+        batalBtn.addEventListener('click', resetForm);
+
+        // 5. Handle Edit & Hapus
+        tableBody.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+
+            if (btn.classList.contains('edit-btn')) {
+                const task = tasks.find(t => t.id === id);
+                taskIdInput.value = task.id;
+                document.getElementById('namaPegawai').value = task.pegawaiId;
+                document.getElementById('tugasPokok').value = task.tugasPokok;
+                document.getElementById('nomorSk').value = task.nomorSk;
+                document.getElementById('tmt').value = task.tmt;
+                document.getElementById('jumlahJam').value = task.jumlahJam;
+                document.getElementById('keterangan').value = task.keterangan;
+                document.querySelector('button[type="submit"]').textContent = 'Update';
+                window.scrollTo(0, 0); // Scroll ke atas
+            }
+
+            if (btn.classList.contains('delete-btn')) {
+                if (confirm('Yakin ingin menghapus tugas ini?')) {
+                    tasks = tasks.filter(t => t.id !== id);
+                    localStorage.setItem(TASK_KEY, JSON.stringify(tasks));
+                    App.helpers.showToast('Tugas berhasil dihapus.', 'error');
+                    renderTable();
+                }
+            }
+        });
+
+        // Inisialisasi
+        populatePegawaiDropdown();
+        renderTable();
+    });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Data Guru - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        /* Style untuk header grup data, warna ungu seperti di contoh */
+        .data-group-header {
+            background-color: #581c87; /* Tailwind purple-900 */
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder" class="no-print"></div>
+        
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            <div class="bg-green-500 text-white p-4 flex justify-between items-center flex-shrink-0 no-print">
+                <h2 class="font-semibold text-lg">Data lengkap pegawai</h2>
+                <button onclick="window.print()" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md text-sm flex items-center gap-2">
+                    <ion-icon name="print-outline"></ion-icon> Cetak
+                </button>
+            </div>
+
+            <div class="p-6 flex-grow" id="detail-content-wrapper">
+                <div id="print-area">
+                    <!-- Data akan dimuat di sini oleh JavaScript -->
+                    <div class="text-center py-10">
+                        <p>Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const contentContainer = document.getElementById('print-area');
+        const urlParams = new URLSearchParams(window.location.search);
+        const teacherId = urlParams.get('id');
+        const KEY = 'schoolTeachers';
+        const teachers = JSON.parse(localStorage.getItem(KEY)) || [];
+
+        const renderDetail = (data) => {
+            const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            
+            // Helper function untuk membuat baris data agar lebih rapi
+            const renderRow = (label, value) => `
+                <tr class="border-b border-gray-200">
+                    <td class="px-6 py-3 w-1/3 text-gray-600 align-top">${label}</td>
+                    <td class="px-6 py-3 w-auto text-gray-500 align-top">:</td>
+                    <td class="px-6 py-3 w-2/3 text-gray-800 font-medium">${value || '-'}</td>
+                </tr>`;
+
+            contentContainer.innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg">
+                    <!-- GRUP 1: DATA LENGKAP PENDIDIK -->
+                    <div class="data-group-header p-3 text-white font-bold rounded-t-lg">
+                        DATA LENGKAP PENDIDIK DAN TENAGA KEPENDIDIKAN
+                    </div>
+                    <table class="w-full text-sm"><tbody>
+                        ${renderRow('Tanggal Cetak', today)}
+                    </tbody></table>
+
+                    <!-- GRUP 2: IDENTITAS SEKOLAH -->
+                    <div class="data-group-header p-3 text-white font-bold mt-4">
+                        IDENTITAS SEKOLAH
+                    </div>
+                    <table class="w-full text-sm"><tbody>
+                        ${renderRow('Nama Sekolah', 'SMK NURUL ISLAM CIANJUR')}
+                        ${renderRow('NPSN', '20203728')}
+                        ${renderRow('Alamat', 'Jl. Raya Cianjur Bandung Km. 09 Rt/Rw 001/007 Desa Selajambe Kec. Sukaluyu')}
+                    </tbody></table>
+
+                     <!-- GRUP 3: IDENTITAS PENDIDIK -->
+                    <div class="data-group-header p-3 text-white font-bold mt-4">
+                        IDENTITAS PENDIDIK DAN TENAGA KEPENDIDIKAN
+                    </div>
+                    <table class="w-full text-sm"><tbody>
+                        ${renderRow('Nama Lengkap (tanpa gelar)', data.nama)}
+                        ${renderRow('NIK/No. Passport (untuk WNA)', data.nik)}
+                        ${renderRow('NPWP', data.npwp)}
+                        ${renderRow('Jenis Kelamin', data.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan')}
+                        ${renderRow('Agama', data.agama)}
+                        ${renderRow('Tempat Lahir', data.tempatLahir)}
+                        ${renderRow('Tanggal Lahir', data.tanggalLahir)}
+                        ${renderRow('Kewarganegaraan', data.kewarganegaraan)}
+                        ${renderRow('Nama Ibu Kandung', data.namaIbu)}
+                    </tbody></table>
+
+                    <!-- GRUP 4: DATA PRIBADI -->
+                    <div class="data-group-header p-3 text-white font-bold mt-4">
+                        DATA PRIBADI
+                    </div>
+                    <table class="w-full text-sm"><tbody>
+                        ${renderRow('Alamat', data.alamat)}
+                        ${renderRow('Desa', data.desa)}
+                        ${renderRow('Kecamatan', data.kecamatan)}
+                        ${renderRow('Kabupaten', data.kabupaten)}
+                        ${renderRow('Provinsi', data.provinsi)}
+                        ${renderRow('Kode Pos', data.kodePos)}
+                        ${renderRow('Status Pernikahan', data.statusPernikahan)}
+                        ${renderRow('Nama suami/istri', data.namaPasangan)}
+                        ${renderRow('Jumlah Anak', data.jumlahAnak)}
+                        ${renderRow('Telepon', data.kontak)}
+                    </tbody></table>
+                    
+                    <!-- GRUP 5: KEPEGAWAIAN -->
+                    <div class="data-group-header p-3 text-white font-bold mt-4">
+                        KEPEGAWAIAN
+                    </div>
+                     <table class="w-full text-sm"><tbody>
+                        ${renderRow('Status Kepegawaian', 'GTY/PTY')}
+                        ${renderRow('NIP', data.nip)}
+                        ${renderRow('NIY/NIGK', data.niy)}
+                        ${renderRow('NUPTK', data.nuptk)}
+                    </tbody></table>
+                    
+                    <!-- GRUP 6: PENUGASAN -->
+                    <div class="data-group-header p-3 text-white font-bold mt-4">
+                        PENUGASAN
+                    </div>
+                     <table class="w-full text-sm"><tbody>
+                        ${renderRow('Nomor surat tugas', '-')}
+                        ${renderRow('Tanggal Surat Tugas', '-')}
+                        ${renderRow('TMT Tugas', '-')}
+                        ${renderRow('Masa kerja', '-')}
+                    </tbody></table>
+                </div>
+            `;
+        };
+
+        if (teacherId) {
+            const teacherData = teachers.find(t => t.id === teacherId);
+            if (teacherData) {
+                renderDetail(teacherData);
+            } else {
+                contentContainer.innerHTML = '<p class="text-center text-red-500">Data guru tidak ditemukan.</p>';
+            }
+        } else {
+            contentContainer.innerHTML = '<p class="text-center text-red-500">ID guru tidak disediakan di URL.</p>';
+        }
+    });
+    </script>
+</body>
+</html>
+

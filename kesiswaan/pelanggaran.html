@@ -10,6 +10,11 @@
         .modal { transition: opacity 0.25s ease; }
         .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
         .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .form-input { 
+            width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB; 
+            padding: 0.5rem 0.75rem; font-size: 0.875rem; 
+        }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #4B5563; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -17,96 +22,197 @@
         <div id="sidebar-placeholder"></div>
         
         <main class="flex-1 overflow-y-auto p-6 md:p-10">
-            <header><h1 class="text-3xl font-bold text-gray-900">Manajemen Pelanggaran Siswa</h1><p class="text-gray-600 mt-1">Catat, lihat, dan kelola semua data pelanggaran siswa secara terpusat.</p></header>
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Pelanggaran Siswa</h1>
+                <p class="text-gray-600 mt-1">Catat dan kelola riwayat pelanggaran siswa.</p>
+            </header>
+            
             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold text-gray-800">Daftar Pelanggaran</h3><button id="addViolationBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center"><ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Data</button></div>
-                <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th scope="col" class="px-6 py-3">Nama Siswa</th><th scope="col" class="px-6 py-3">Kelas</th><th scope="col" class="px-6 py-3">Jenis Pelanggaran</th><th scope="col" class="px-6 py-3">Poin</th><th scope="col" class="px-6 py-3">Tanggal</th><th scope="col" class="px-6 py-3">Aksi</th></tr></thead><tbody id="violationTableBody"></tbody></table></div>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <input type="text" id="filter-input" class="form-input md:w-1/3" placeholder="Cari berdasarkan nama siswa atau jenis pelanggaran...">
+                    <button id="add-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm w-full md:w-auto">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>Tambah Catatan Pelanggaran
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 text-left text-gray-600">
+                            <tr>
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Nama Siswa</th>
+                                <th class="p-3">Kelas</th>
+                                <th class="p-3">Jenis Pelanggaran</th>
+                                <th class="p-3 text-center">Poin</th>
+                                <th class="p-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="violations-table-body"></tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal for this page -->
-    <div id="pelanggaran-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 id="modalTitle" class="text-2xl font-bold mb-4">Tambah Pelanggaran Baru</h3><form id="violationForm"><input type="hidden" id="violationId"><div class="mb-4"><label for="studentName" class="block text-gray-700 text-sm font-bold mb-2">Nama Siswa:</label><input type="text" id="studentName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="mb-4"><label for="studentClass" class="block text-gray-700 text-sm font-bold mb-2">Kelas:</label><input type="text" id="studentClass" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="mb-4"><label for="violationType" class="block text-gray-700 text-sm font-bold mb-2">Jenis Pelanggaran:</label><input type="text" id="violationType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div class="grid grid-cols-2 gap-4 mb-6"><div><label for="points" class="block text-gray-700 text-sm font-bold mb-2">Poin:</label><input type="number" id="points" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div><div><label for="date" class="block text-gray-700 text-sm font-bold mb-2">Tanggal:</label><input type="date" id="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required></div></div><div class="flex items-center justify-end"><button type="button" class="cancel-modal-btn bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mr-2">Batal</button><button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg">Simpan</button></div></form></div>
+    <!-- Modal Tambah/Edit Pelanggaran -->
+    <div id="violation-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col p-6">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4 flex-shrink-0">Catat Pelanggaran Baru</h3>
+            <form id="violationForm" class="flex flex-col flex-grow overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 flex-grow overflow-y-auto pr-2">
+                    <!-- Kolom Kiri: Detail Pelanggaran -->
+                    <div class="space-y-4">
+                        <div><label for="tanggal" class="form-label font-semibold">Tanggal</label><input type="date" id="tanggal" class="form-input" required></div>
+                        <div><label for="jenis" class="form-label font-semibold">Jenis Pelanggaran</label><input type="text" id="jenis" class="form-input" placeholder="e.g., Terlambat masuk sekolah" required></div>
+                        <div><label for="poin" class="form-label font-semibold">Poin</label><input type="number" id="poin" class="form-input" required></div>
+                        <div><label for="tindakan" class="form-label font-semibold">Tindakan yang Diambil</label><input type="text" id="tindakan" class="form-input" placeholder="e.g., Teguran lisan"></div>
+                        <div><label for="catatan" class="form-label font-semibold">Catatan</label><textarea id="catatan" class="form-input h-20"></textarea></div>
+                    </div>
+                    <!-- Kolom Kanan: Pilih Siswa -->
+                    <div>
+                        <label class="form-label font-semibold">Pilih Siswa</label>
+                        <input type="text" id="search-student-modal" class="form-input mb-2" placeholder="Cari siswa untuk dipilih...">
+                        <div id="student-list-container" class="border rounded-lg p-2 h-64 overflow-y-auto space-y-1">
+                           <!-- Daftar siswa dengan checkbox akan muncul di sini -->
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-6 pt-4 border-t flex-shrink-0">
+                    <button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">Batal</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
-
-    <script src="../assets/app.js"></script>
-<script src="../assets/sidebar-sub.js"></script>
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const addBtn = document.getElementById('addViolationBtn');
-            const modal = document.getElementById('pelanggaran-modal');
-            const form = document.getElementById('violationForm');
-            const tableBody = document.getElementById('violationTableBody');
-            const modalTitle = document.getElementById('modalTitle');
-            const idInput = document.getElementById('violationId');
-            
-            const KEY = 'schoolViolations';
-            const getInitialData = () => [{id: '1', name: 'Budi Santoso', class: '10 IPA 1', type: 'Terlambat', points: '5', date: '2025-08-20'}, {id: '2', name: 'Ani Lestari', class: '11 IPS 2', type: 'Seragam tidak lengkap', points: '10', date: '2025-08-22'}];
-            let violations = JSON.parse(localStorage.getItem(KEY)) || getInitialData();
-            const save = () => localStorage.setItem(KEY, JSON.stringify(violations));
+    document.addEventListener('DOMContentLoaded', () => {
+        const loadMasterData = (key, initialDataFn) => {
+            let data = JSON.parse(localStorage.getItem(key));
+            if (!data || data.length === 0) { data = initialDataFn(); localStorage.setItem(key, JSON.stringify(data)); }
+            return data;
+        };
 
-            const render = () => {
-                tableBody.innerHTML = '';
-                if (violations.length === 0) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Belum ada data.</td></tr>`; return; }
-                violations.forEach(v => {
-                    tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><td class="px-6 py-4 font-medium text-gray-900">${v.name}</td><td class="px-6 py-4">${v.class}</td><td class="px-6 py-4">${v.type}</td><td class="px-6 py-4">${v.points}</td><td class="px-6 py-4">${v.date}</td><td class="px-6 py-4 flex space-x-2"><button class="edit-btn text-blue-600 font-medium hover:underline" data-id="${v.id}">Edit</button><button class="delete-btn text-red-600 font-medium hover:underline" data-id="${v.id}">Hapus</button></td></tr>`;
-                });
-            };
+        const students = loadMasterData('schoolStudents', () => [
+            { id: '1', nis: '202501', nama: 'Citra Amelia', kelas: 'KLS-X1' },
+            { id: '2', nis: '202502', nama: 'Budi Hartono', kelas: 'KLS-X1' },
+            { id: '3', nis: '202401', nama: 'Dewi Lestari', kelas: 'KLS-XI-PPLG' }
+        ]);
+        const classes = loadMasterData('schoolClasses', () => [
+            { id: 'KLS-X1', nama: 'Kelas X-1' },
+            { id: 'KLS-XI-PPLG', nama: 'Kelas XI-PPLG' }
+        ]);
+        
+        const VIOLATION_KEY = 'schoolAllViolations';
+        let allViolations = loadMasterData(VIOLATION_KEY, () => [
+            { id: 'V1', studentId: '2', tanggal: '2025-08-10', jenis: 'Terlambat', poin: 5, tindakan: 'Teguran', catatan: 'Gerbang sudah ditutup' }
+        ]);
 
-            const openModal = (mode = 'create', id = null) => {
-                form.reset();
-                if (mode === 'create') {
-                    modalTitle.textContent = 'Tambah Pelanggaran Baru';
-                    idInput.value = '';
-                    document.getElementById('date').valueAsDate = new Date();
-                } else {
-                    modalTitle.textContent = 'Edit Data Pelanggaran';
-                    const v = violations.find(item => item.id === id);
-                    idInput.value = v.id;
-                    document.getElementById('studentName').value = v.name;
-                    document.getElementById('studentClass').value = v.class;
-                    document.getElementById('violationType').value = v.type;
-                    document.getElementById('points').value = v.points;
-                    document.getElementById('date').value = v.date;
-                }
-                modal.classList.remove('hidden');
-            };
+        const tableBody = document.getElementById('violations-table-body');
+        const modal = document.getElementById('violation-modal');
+        const form = document.getElementById('violationForm');
+        const studentListContainer = document.getElementById('student-list-container');
+        const searchStudentModal = document.getElementById('search-student-modal');
+        const filterInput = document.getElementById('filter-input');
+
+        const renderTable = (filterTerm = '') => {
+            tableBody.innerHTML = '';
+            const filteredViolations = allViolations.filter(v => {
+                const student = students.find(s => s.id === v.studentId);
+                return (student && student.nama.toLowerCase().includes(filterTerm)) || v.jenis.toLowerCase().includes(filterTerm);
+            }).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
             
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = {
-                    id: idInput.value || Date.now().toString(),
-                    name: document.getElementById('studentName').value,
-                    class: document.getElementById('studentClass').value,
-                    type: document.getElementById('violationType').value,
-                    points: document.getElementById('points').value,
-                    date: document.getElementById('date').value,
-                };
-                if (idInput.value) {
-                    const index = violations.findIndex(v => v.id === formData.id);
-                    violations[index] = formData;
-                } else { violations.push(formData); }
-                save(); render(); modal.classList.add('hidden');
-                App.helpers.showToast('Data pelanggaran berhasil disimpan!');
+            if (filteredViolations.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4">Tidak ada catatan pelanggaran.</td></tr>`;
+                return;
+            }
+
+            filteredViolations.forEach(v => {
+                const student = students.find(s => s.id === v.studentId);
+                const sClass = classes.find(c => c.id === student?.kelas);
+                tableBody.innerHTML += `
+                    <tr class="border-t">
+                        <td class="p-3">${v.tanggal}</td>
+                        <td class="p-3 font-medium">${student?.nama || 'Siswa Dihapus'}</td>
+                        <td class="p-3">${sClass?.nama || '-'}</td>
+                        <td class="p-3">${v.jenis}</td>
+                        <td class="p-3 text-center">${v.poin}</td>
+                        <td class="p-3"><button class="delete-btn text-red-500 hover:text-red-700" data-id="${v.id}">Hapus</button></td>
+                    </tr>`;
             });
+        };
 
-            tableBody.addEventListener('click', (e) => {
-                if (e.target.classList.contains('edit-btn')) openModal('edit', e.target.dataset.id);
-                if (e.target.classList.contains('delete-btn')) {
-                    if (confirm('Yakin ingin hapus data ini?')) {
-                        violations = violations.filter(v => v.id !== e.target.dataset.id);
-                        save(); render();
-                        App.helpers.showToast('Data berhasil dihapus!', 'error');
-                    }
-                }
+        const populateStudentList = (searchTerm = '') => {
+            studentListContainer.innerHTML = '';
+            students.filter(s => s.nama.toLowerCase().includes(searchTerm.toLowerCase())).forEach(s => {
+                studentListContainer.innerHTML += `
+                    <label class="flex items-center p-2 rounded hover:bg-gray-100">
+                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" value="${s.id}">
+                        <span class="ml-3 text-sm text-gray-700">${s.nama}</span>
+                    </label>`;
             });
-            
-            addBtn.addEventListener('click', () => openModal('create'));
-            render();
+        };
+        
+        const openModal = () => {
+            form.reset();
+            populateStudentList();
+            modal.classList.remove('hidden');
+        };
+        const closeModal = () => modal.classList.add('hidden');
+        
+        document.getElementById('add-btn').addEventListener('click', openModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('cancel-modal-btn') || e.target === modal) closeModal();
         });
+        searchStudentModal.addEventListener('input', () => populateStudentList(searchStudentModal.value));
+        filterInput.addEventListener('input', () => renderTable(filterInput.value.toLowerCase()));
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const selectedStudents = Array.from(studentListContainer.querySelectorAll('input:checked')).map(input => input.value);
+            
+            if (selectedStudents.length === 0) {
+                App.helpers.showToast('Pilih minimal satu siswa!', 'error');
+                return;
+            }
+
+            const record = {
+                tanggal: document.getElementById('tanggal').value,
+                jenis: document.getElementById('jenis').value,
+                poin: document.getElementById('poin').value,
+                tindakan: document.getElementById('tindakan').value,
+                catatan: document.getElementById('catatan').value,
+            };
+
+            selectedStudents.forEach(studentId => {
+                const newViolation = { ...record, id: `V${Date.now()}_${studentId}`, studentId: studentId };
+                allViolations.push(newViolation);
+            });
+            
+            localStorage.setItem(VIOLATION_KEY, JSON.stringify(allViolations));
+            App.helpers.showToast(`${selectedStudents.length} catatan pelanggaran berhasil disimpan!`);
+            renderTable();
+            closeModal();
+        });
+
+        tableBody.addEventListener('click', e => {
+            if (e.target.classList.contains('delete-btn')) {
+                const id = e.target.dataset.id;
+                if (confirm('Yakin ingin menghapus catatan ini?')) {
+                    allViolations = allViolations.filter(v => v.id !== id);
+                    localStorage.setItem(VIOLATION_KEY, JSON.stringify(allViolations));
+                    App.helpers.showToast('Catatan dihapus!', 'error');
+                    renderTable();
+                }
+            }
+        });
+
+        renderTable();
+    });
     </script>
 </body>
 </html>
+
