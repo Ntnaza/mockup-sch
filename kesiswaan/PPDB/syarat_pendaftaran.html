@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syarat Pendaftaran - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .custom-radio:checked + label { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4B5563;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Syarat Pendaftaran</h1><p class="text-gray-600 mt-1">Buat, lihat, dan kelola syarat pendaftaran.</p></header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Syarat Pendaftaran</h3>
+                    <button id="openModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+                        <ion-icon name="add-outline" class="mr-2"></ion-icon>
+                        Tambah Syarat
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="w-1/12 px-6 py-3">No</th>
+                                <th scope="col" class="w-2/12 px-6 py-3 text-center">Tahun Pelajaran</th>
+                                <th scope="col" class="w-2/12 px-6 py-3">Nama Jalur</th>
+                                <th scope="col" class="w-6/12 px-6 py-3">Syarat</th>
+                                <th scope="col" class="w-1/12 px-6 py-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="syaratTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="modal" class="modal fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none">
+                <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+                <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
+                    <div class="flex justify-between items-center p-5 rounded-t-lg border-b border-gray-200">
+                        <h3 id="modalTitle" class="text-xl font-semibold text-gray-800">Tambah Syarat Pendaftaran</h3>
+                        <button class="close-modal text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                            <ion-icon name="close-outline" class="w-6 h-6"></ion-icon>
+                        </button>
+                    </div>
+                    <div class="p-5">
+                        <form id="syaratForm" action="#" method="POST">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="tahunPendaftaran" class="form-label">Tahun Pendaftaran PPDB</label>
+                                    <input type="text" id="tahunPendaftaran" name="tahunPendaftaran" class="form-input bg-gray-100" placeholder="Contoh: 2024 / 2025" readonly>
+                                </div>
+                                <div>
+                                    <label for="jalurSelect" class="form-label">Jalur</label>
+                                    <select name="jalur" id="jalurSelect" class="form-input" required>
+                                        <option value="">- Pilih Jalur -</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="syaratInput" class="form-label">Syarat</label>
+                                    <input type="text" id="syaratInput" name="syarat" class="form-input" placeholder="Contoh: Akta Kelahiran, Kartu Keluarga" required>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end gap-3">
+                                <button type="button" class="close-modal bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+                                    Batal
+                                </button>
+                                <button type="submit" id="submitBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2">
+                                    <ion-icon name="save-outline"></ion-icon>
+                                    Simpan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Confirmation Modal -->
+            <div id="confirmModal" class="modal fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none">
+                <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+                <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto p-6">
+                    <div class="text-center">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Hapus Data</h4>
+                        <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
+                        <div class="flex justify-center gap-4">
+                            <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+                            <button id="confirmDeleteBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../../assets/app.js"></script>
+    <script src="../../assets/sidebar-sub-ppdb.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+    const syaratForm = document.getElementById('syaratForm');
+    const syaratTableBody = document.getElementById('syaratTableBody');
+    const tahunPendaftaranInput = document.getElementById('tahunPendaftaran');
+    const jalurSelect = document.getElementById('jalurSelect');
+    const syaratInput = document.getElementById('syaratInput');
+    const modalTitle = document.getElementById('modalTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    const activeYear = localStorage.getItem('activeSchoolYear');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+    let editingIndex = null;
+    let deleteIndex = null;
+
+    function populateJalurSelect() {
+        const jalurData = JSON.parse(localStorage.getItem('jalurPendaftaran') || '[]');
+        const activeJalur = jalurData.filter(jalur => jalur.active);
+
+        jalurSelect.innerHTML = '<option value="">- Pilih Jalur -</option>';
+        activeJalur.forEach((jalur, index) => {
+            const option = document.createElement('option');
+            // Menampilkan nomor urut dan nama jalur di dropdown
+            option.value = jalur.jalur;
+            option.textContent = `${index + 1} | ${jalur.jalur}`;
+            jalurSelect.appendChild(option);
+        });
+    }
+
+    function openModal() {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        populateJalurSelect();
+        if (activeYear) {
+            tahunPendaftaranInput.value = activeYear;
+        } else {
+            tahunPendaftaranInput.value = 'Belum ada tahun aktif';
+        }
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        syaratForm.reset();
+        editingIndex = null;
+        modalTitle.textContent = 'Tambah Syarat Pendaftaran';
+        submitBtn.innerHTML = '<ion-icon name="save-outline"></ion-icon> Simpan';
+    }
+
+    function showConfirmModal() {
+        confirmModal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeConfirmModal() {
+        confirmModal.classList.add('opacity-0', 'pointer-events-none');
+        deleteIndex = null;
+    }
+
+    function saveData(data) {
+        localStorage.setItem('syaratPendaftaran', JSON.stringify(data));
+    }
+
+    function loadData() {
+        const data = localStorage.getItem('syaratPendaftaran');
+        return data ? JSON.parse(data) : [];
+    }
+
+    function renderTable() {
+        const data = loadData();
+        syaratTableBody.innerHTML = '';
+        if (data.length === 0) {
+            syaratTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        Belum ada data syarat pendaftaran.
+                    </td>
+                </tr>
+            `;
+        } else {
+            data.forEach((item, index) => {
+                const row = `
+                    <tr class="bg-white border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-900">${index + 1}</td>
+                        <td class="px-6 py-4 text-center">${item.tahunPendaftaran}</td>
+                        <td class="px-6 py-4">${item.jalur}</td>
+                        <td class="px-6 py-4">${item.syarat}</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button data-index="${index}" class="edit-btn text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Edit">
+                                    <ion-icon name="create-outline" class="w-5 h-5 pointer-events-none"></ion-icon>
+                                </button>
+                                <button data-index="${index}" class="delete-btn text-red-600 hover:text-red-900 transition-colors duration-200" title="Hapus">
+                                    <ion-icon name="trash-outline" class="w-5 h-5 pointer-events-none"></ion-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                syaratTableBody.innerHTML += row;
+            });
+        }
+    }
+
+    function editEntry(index) {
+        const data = loadData();
+        const entryToEdit = data[index];
+        editingIndex = index;
+        
+        tahunPendaftaranInput.value = entryToEdit.tahunPendaftaran;
+        syaratInput.value = entryToEdit.syarat;
+        
+        openModal();
+
+        const option = jalurSelect.querySelector(`option[value="${entryToEdit.jalur}"]`);
+        if (option) {
+            jalurSelect.value = entryToEdit.jalur;
+        } else {
+            App.helpers.showToast(`Jalur "${entryToEdit.jalur}" tidak aktif, silakan pilih jalur lain.`, 'warning');
+            jalurSelect.value = '';
+        }
+
+        modalTitle.textContent = 'Edit Syarat Pendaftaran';
+        submitBtn.innerHTML = '<ion-icon name="save-outline"></ion-icon> Perbarui';
+    }
+
+    function deleteEntry() {
+        if (deleteIndex !== null) {
+            const data = loadData();
+            data.splice(deleteIndex, 1);
+            saveData(data);
+            renderTable();
+            closeConfirmModal();
+            App.helpers.showToast('Data syarat berhasil dihapus!');
+        }
+    }
+
+    openModalBtn.addEventListener('click', () => {
+        closeModal();
+        openModal();
+    });
+
+    closeModalBtns.forEach(btn => {
+        btn.addEventListener('click', closeModal);
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            closeModal();
+        }
+    });
+    
+    cancelDeleteBtn.addEventListener('click', closeConfirmModal);
+    confirmDeleteBtn.addEventListener('click', deleteEntry);
+
+    syaratTableBody.addEventListener('click', (e) => {
+        const target = e.target.closest('button');
+        if (!target) return;
+        
+        const index = target.dataset.index;
+        
+        if (target.classList.contains('edit-btn')) {
+            editEntry(index);
+        } else if (target.classList.contains('delete-btn')) {
+            deleteIndex = index;
+            showConfirmModal();
+        }
+    });
+
+    syaratForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const newEntry = {
+            tahunPendaftaran: tahunPendaftaranInput.value,
+            jalur: jalurSelect.value,
+            syarat: syaratInput.value
+        };
+        
+        if (!newEntry.jalur || !newEntry.syarat) {
+            App.helpers.showToast('Kolom Jalur dan Syarat wajib diisi!', 'error');
+            return;
+        }
+
+        const currentData = loadData();
+        if (editingIndex !== null) {
+            currentData[editingIndex] = newEntry;
+            saveData(currentData);
+            App.helpers.showToast('Data syarat berhasil diperbarui!');
+        } else {
+            currentData.push(newEntry);
+            saveData(currentData);
+            App.helpers.showToast('Syarat pendaftaran berhasil ditambahkan!');
+        }
+        
+        renderTable();
+        closeModal();
+    });
+
+    renderTable();
+
+    if (activeYear) {
+        tahunPendaftaranInput.value = activeYear;
+    } else {
+        tahunPendaftaranInput.value = 'Belum ada tahun aktif';
+    }
+}); 
+    </script>
+</body>
+</html>

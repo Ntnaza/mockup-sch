@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Calon Pendaftaran - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script>
+        // --- Helper function for toast messages ---
+        window.App = window.App || {};
+        window.App.helpers = window.App.helpers || {};
+        window.App.helpers.showToast = (message, type = 'success') => {
+            const toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                console.error("Toast container not found.");
+                return;
+            }
+            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const toast = document.createElement('div');
+            toast.className = `p-4 rounded-lg shadow-lg text-white ${bgColor} transition-transform transform translate-x-full ease-out duration-300`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+                toast.classList.add('translate-x-0');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0');
+                toast.classList.add('translate-x-full');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        };
+        
+        // --- Core Application Logic with localStorage ---
+        window.App.main = {
+            localStorageKey: 'ppdbData', // Kunci localStorage yang baru
+            
+            loadRegistrations: () => {
+                const registrationsJson = localStorage.getItem(window.App.main.localStorageKey);
+                const registrations = registrationsJson ? JSON.parse(registrationsJson) : [];
+                window.App.main.renderTable(registrations);
+            },
+
+            saveRegistrations: (registrations) => {
+                localStorage.setItem(window.App.main.localStorageKey, JSON.stringify(registrations));
+                window.App.helpers.showToast('Perubahan berhasil disimpan!', 'success');
+            },
+
+            renderTable: (registrations) => {
+                const tableBody = document.getElementById('registrationsTableBody');
+                tableBody.innerHTML = '';
+                if (registrations.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Belum ada data pendaftaran.</td></tr>`;
+                    return;
+                }
+                
+                registrations.forEach((data, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b hover:bg-gray-50';
+                    row.setAttribute('data-id', data.id);
+                    
+                    const formattedDate = data.timestamp ? new Date(data.timestamp).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+                    
+                    const requiredDocuments = ['Fotokopi KK', 'Fotokopi KTP Ortu'];
+                    const missingDocs = requiredDocuments.filter(docName => !data.documents?.[docName.toLowerCase().replace(/ /g, '_')]);
+                    
+                    const missingDocsHtml = missingDocs.length > 0 ? 
+                        `<ul class="list-disc list-inside text-red-500">
+                            ${missingDocs.map(doc => `<li><span class="text-red-500 mr-1">&times;</span>${doc}</li>`).join('')}
+                        </ul>` :
+                        `<p class="text-green-500">Semua syarat lengkap</p>`;
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900">${index + 1}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-blue-600">${data.resi || '-'}</span><br>
+                            <span class="text-xs text-gray-500">${data.jurusan || '-'}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold">${data.namaLengkap || '-'} (${data.jenisKelamin || '-'})</span><br>
+                            <span class="text-sm text-gray-500">Ttl: ${data.tempatLahir || '-'}, ${data.tglLahir || '-'}</span><br>
+                            <span class="text-sm text-gray-500">Telp: ${data.kontak || '-'}</span><br>
+                            <span class="text-sm text-gray-500">Asal: ${data.asalSekolah || '-'}</span>
+                        </td>
+                        <td class="px-6 py-4">${formattedDate}</td>
+                        <td class="px-6 py-4 text-sm">${missingDocsHtml}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full text-white ${data.keterangan ? 'bg-orange-400' : 'bg-green-500'}">
+                                    ${data.keterangan || 'Sudah Lengkap'}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button data-id="${data.id}" class="edit-btn text-blue-600 hover:text-blue-900 transition-colors duration-200" title="Edit">
+                                    <ion-icon name="create-outline" class="w-5 h-5 pointer-events-none"></ion-icon>
+                                </button>
+                                <button data-id="${data.id}" class="delete-btn text-red-600 hover:text-red-900 transition-colors duration-200" title="Hapus">
+                                    <ion-icon name="trash-outline" class="w-5 h-5 pointer-events-none"></ion-icon>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            },
+
+            deleteRegistration: (docId) => {
+                const registrationsJson = localStorage.getItem(window.App.main.localStorageKey);
+                let registrations = registrationsJson ? JSON.parse(registrationsJson) : [];
+                
+                const initialLength = registrations.length;
+                registrations = registrations.filter(reg => reg.id !== docId);
+
+                if (registrations.length < initialLength) {
+                    window.App.main.saveRegistrations(registrations);
+                    window.App.main.loadRegistrations(); // Reload the table
+                    window.App.helpers.showToast('Data pendaftaran berhasil dihapus!', 'success');
+                } else {
+                    window.App.helpers.showToast("Data tidak ditemukan untuk dihapus.", 'error');
+                }
+            },
+
+            openEditModal: (data, docId) => {
+                const modal = document.getElementById('editModal');
+                document.getElementById('editKeterangan').value = data.keterangan || '';
+                document.getElementById('editSyaratKK').checked = data.documents?.fotokopi_kk || false;
+                document.getElementById('editSyaratKTPOrtu').checked = data.documents?.fotokopi_ktp_ortu || false;
+                document.getElementById('saveEditBtn').dataset.id = docId;
+
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            },
+
+            closeEditModal: () => {
+                const modal = document.getElementById('editModal');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            },
+
+            updateRegistration: (docId, newKeterangan, newDocuments) => {
+                const registrationsJson = localStorage.getItem(window.App.main.localStorageKey);
+                let registrations = registrationsJson ? JSON.parse(registrationsJson) : [];
+                
+                const registrationIndex = registrations.findIndex(reg => reg.id === docId);
+
+                if (registrationIndex !== -1) {
+                    registrations[registrationIndex].keterangan = newKeterangan;
+                    registrations[registrationIndex].documents = newDocuments;
+                    
+                    window.App.main.saveRegistrations(registrations);
+                    window.App.main.loadRegistrations(); // Reload the table
+                    window.App.main.closeEditModal();
+                    window.App.helpers.showToast('Data pendaftaran berhasil diperbarui!', 'success');
+                } else {
+                    window.App.helpers.showToast("Gagal memperbarui data. Data tidak ditemukan.", 'error');
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('registrationsTableBody');
+            const confirmModal = document.getElementById('confirmModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const editModal = document.getElementById('editModal');
+            const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+            const saveEditBtn = document.getElementById('saveEditBtn');
+            
+            let deleteDocId = null;
+
+            // Load initial data from localStorage
+            window.App.main.loadRegistrations();
+
+            tableBody.addEventListener('click', (e) => {
+                const target = e.target.closest('button');
+                if (!target) return;
+                
+                const docId = target.dataset.id;
+                
+                if (target.classList.contains('delete-btn')) {
+                    deleteDocId = docId;
+                    confirmModal.classList.remove('opacity-0', 'pointer-events-none');
+                } else if (target.classList.contains('edit-btn')) {
+                    const registrationsJson = localStorage.getItem(window.App.main.localStorageKey);
+                    const registrations = registrationsJson ? JSON.parse(registrationsJson) : [];
+                    const data = registrations.find(reg => reg.id === docId);
+
+                    if (data) {
+                        window.App.main.openEditModal(data, docId);
+                    } else {
+                        window.App.helpers.showToast("Data tidak ditemukan.", 'error');
+                    }
+                }
+            });
+
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (deleteDocId) {
+                    window.App.main.deleteRegistration(deleteDocId);
+                    confirmModal.classList.add('opacity-0', 'pointer-events-none');
+                    deleteDocId = null;
+                }
+            });
+            
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmModal.classList.add('opacity-0', 'pointer-events-none');
+                deleteDocId = null;
+            });
+
+            closeEditModalBtn.addEventListener('click', window.App.main.closeEditModal);
+
+            saveEditBtn.addEventListener('click', () => {
+                const docId = saveEditBtn.dataset.id;
+                const newKeterangan = document.getElementById('editKeterangan').value;
+                const newDocuments = {
+                    fotokopi_kk: document.getElementById('editSyaratKK').checked,
+                    fotokopi_ktp_ortu: document.getElementById('editSyaratKTPOrtu').checked
+                };
+                window.App.main.updateRegistration(docId, newKeterangan, newDocuments);
+            });
+
+            // Sample Data for demonstration
+            if (!localStorage.getItem(window.App.main.localStorageKey)) {
+                const sampleData = [
+                    {
+                        id: 'sample-1',
+                        resi: 'RES-001',
+                        jurusan: 'IPA',
+                        namaLengkap: 'Budi Santoso',
+                        jenisKelamin: 'L',
+                        tempatLahir: 'Jakarta',
+                        tglLahir: '10-05-2006',
+                        kontak: '081234567890',
+                        asalSekolah: 'SMP Negeri 1 Jakarta',
+                        timestamp: Date.now(),
+                        documents: {
+                            fotokopi_kk: true,
+                            fotokopi_ktp_ortu: false
+                        },
+                        keterangan: 'Menunggu kelengkapan dokumen'
+                    },
+                    {
+                        id: 'sample-2',
+                        resi: 'RES-002',
+                        jurusan: 'IPS',
+                        namaLengkap: 'Siti Aminah',
+                        jenisKelamin: 'P',
+                        tempatLahir: 'Bandung',
+                        tglLahir: '22-11-2006',
+                        kontak: '085698765432',
+                        asalSekolah: 'SMP Negeri 2 Bandung',
+                        timestamp: Date.now(),
+                        documents: {
+                            fotokopi_kk: true,
+                            fotokopi_ktp_ortu: true
+                        },
+                        keterangan: 'Sudah Lengkap'
+                    }
+                ];
+                window.App.main.saveRegistrations(sampleData);
+                window.App.main.loadRegistrations();
+            }
+        });
+    </script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Daftar Calon Pendaftaran</h1>
+                <p class="text-gray-600 mt-1">Lihat dan kelola data pendaftaran siswa.</p>
+            </header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Data Pendaftar Siswa</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="w-1/12 px-6 py-3">No</th>
+                                <th scope="col" class="w-2/12 px-6 py-3">Nomor Resi</th>
+                                <th scope="col" class="w-3/12 px-6 py-3">Informasi Pendaftar</th>
+                                <th scope="col" class="w-1/12 px-6 py-3">Tanggal Daftar</th>
+                                <th scope="col" class="w-2/12 px-6 py-3">Syarat-syarat</th>
+                                <th scope="col" class="w-1/12 px-6 py-3">Keterangan</th>
+                                <th scope="col" class="w-1/12 px-6 py-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="registrationsTableBody">
+                            <!-- Data pendaftaran akan di-render di sini oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Modal Edit -->
+            <div id="editModal" class="modal fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none">
+                <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+                <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto">
+                    <div class="flex justify-between items-center p-5 rounded-t-lg border-b border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Edit Data Pendaftar</h3>
+                        <button id="closeEditModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                            <ion-icon name="close-outline" class="w-6 h-6"></ion-icon>
+                        </button>
+                    </div>
+                    <div class="p-5">
+                        <div class="space-y-4">
+                            <div>
+                                <label for="editKeterangan" class="block mb-2 text-sm font-medium text-gray-900">Keterangan</label>
+                                <textarea id="editKeterangan" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Syarat - Syarat</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center">
+                                        <input id="editSyaratKK" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 focus:ring-2">
+                                        <label for="editSyaratKK" class="ml-2 text-sm font-medium text-gray-900">Fotokopi KK</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="editSyaratKTPOrtu" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 focus:ring-2">
+                                        <label for="editSyaratKTPOrtu" class="ml-2 text-sm font-medium text-gray-900">Fotokopi KTP Ortu</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end">
+                            <button id="saveEditBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2">
+                                <ion-icon name="save-outline"></ion-icon>
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Confirmation Modal -->
+            <div id="confirmModal" class="modal fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none">
+                <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+                <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded-lg shadow-lg z-50 overflow-y-auto p-6">
+                    <div class="text-center">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Hapus Data</h4>
+                        <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
+                        <div class="flex justify-center gap-4">
+                            <button id="cancelDeleteBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+                            <button id="confirmDeleteBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tahun Pendaftaran - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .modal { transition: opacity 0.25s ease; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .custom-radio:checked + label { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
+        .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header><h1 class="text-3xl font-bold text-gray-900">Tahun Pendaftaran</h1><p class="text-gray-600 mt-1">Buat, lihat, dan kelola rekap absensi harian per kelas.</p></header>
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-semibold text-gray-800">Daftar Tahun Pendaftaran</h3></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="w-1/12 px-6 py-3">No</th>
+                                <th scope="col" class="w-2/12 px-6 py-3 text-center">Tahun Pelajaran</th>
+                                <th scope="col" class="w-8/12 px-6 py-3 text-center">Keterangan</th>
+                                <th scope="col" class="w-1/12 px-6 py-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tahunPelajaran">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+
+    <script src="../../assets/app.js"></script>
+    <script src="../../assets/sidebar-sub-ppdb.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tbody = document.getElementById('tahunPelajaran');
+            const tahunAwal = 2018;
+            const tahunAkhir = 2025;
+            const activeYearKey = 'activeSchoolYear';
+            let activeSchoolYear = localStorage.getItem(activeYearKey);
+            let activeButton = null;
+            let activeKeterangan = null;
+            
+            // Fungsi untuk menyimpan tahun aktif ke localStorage
+            const saveActiveYear = (year) => {
+                if (year) {
+                    localStorage.setItem(activeYearKey, year);
+                } else {
+                    localStorage.removeItem(activeYearKey);
+                }
+            };
+
+            for (let i = tahunAwal; i <= tahunAkhir; i++) {
+                const tahunPelajaran = `${i} / ${i + 1}`;
+                const isCurrentlyActive = tahunPelajaran === activeSchoolYear;
+                const keterangan = isCurrentlyActive ? 'Aktif' : 'Tidak Aktif';
+
+                const nomorUrut = i - tahunAwal + 1;
+                
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+                row.dataset.year = tahunPelajaran;
+
+                row.innerHTML = `
+                    <td class="w-1/12 px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${nomorUrut}</td>
+                    <td class="w-2/12 px-6 py-4 font-medium text-gray-900 text-center">${tahunPelajaran}</td>
+                    <td class="w-8/12 keterangan-cell px-6 py-4 text-center ${isCurrentlyActive ? 'text-green-500 font-semibold' : 'text-gray-500'}">${keterangan}</td>
+                    <td class="w-1/12 px-6 py-4 flex items-center justify-center space-x-2">
+                        <button class="toggle-status-btn transition-colors" title="Aktifkan/Nonaktifkan">
+                            <ion-icon name="${isCurrentlyActive ? 'checkmark-circle' : 'checkmark-circle-outline'}" class="w-5 h-5 ${isCurrentlyActive ? 'text-green-600' : 'text-blue-600'} pointer-events-none"></ion-icon>
+                        </button>
+                        <button class="edit-btn text-gray-900 hover:text-blue-500 transition-colors">
+                            <ion-icon name="create-outline" size="large"></ion-icon>
+                        </button>
+                    </td>
+                `;
+                
+                if (isCurrentlyActive) {
+                    activeButton = row.querySelector('.toggle-status-btn');
+                    activeKeterangan = row.querySelector('.keterangan-cell');
+                }
+
+                tbody.appendChild(row);
+            }
+
+            tbody.addEventListener('click', (event) => {
+                const button = event.target.closest('.toggle-status-btn');
+                if (button) {
+                    const row = button.closest('tr');
+                    const icon = button.querySelector('ion-icon');
+                    const keteranganCell = row.querySelector('.keterangan-cell');
+                    const tahunPelajaran = row.dataset.year;
+
+                    // Deactivate previous active year if it's a different button
+                    if (activeButton && activeButton !== button) {
+                        const prevIcon = activeButton.querySelector('ion-icon');
+                        const prevKeterangan = activeKeterangan;
+
+                        prevIcon.name = 'checkmark-circle-outline';
+                        prevIcon.classList.remove('text-green-600');
+                        prevIcon.classList.add('text-blue-600');
+                        
+                        if (prevKeterangan) {
+                            prevKeterangan.textContent = 'Tidak Aktif';
+                            prevKeterangan.classList.remove('text-green-500', 'font-semibold');
+                            prevKeterangan.classList.add('text-gray-500');
+                        }
+                    }
+
+                    // Activate the selected year
+                    icon.name = 'checkmark-circle';
+                    icon.classList.remove('text-blue-600');
+                    icon.classList.add('text-green-600');
+                    keteranganCell.textContent = 'Aktif';
+                    keteranganCell.classList.add('text-green-500', 'font-semibold');
+                    keteranganCell.classList.remove('text-gray-500');
+                    
+                    activeButton = button;
+                    activeKeterangan = keteranganCell;
+                    saveActiveYear(tahunPelajaran);
+                    App.helpers.showToast(`Tahun pelajaran ${tahunPelajaran} berhasil diaktifkan!`);
+                }
+
+                const editButton = event.target.closest('.edit-btn');
+                if (editButton) {
+                    console.log('Tombol ubah diklik!');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

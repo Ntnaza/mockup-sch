@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir PPDB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        /* Standar Styling untuk Form di dalam Iframe */
+        .form-input {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 2px #BFDBFE;
+            outline: none;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="space-y-4">
+                <div><label class="form-label">Tahun Pendaftaran PPDB</label><input type="text" id="tahunPendaftaran" class="form-input" readonly></div>
+                <div><label class="form-label">Nama Lengkap</label><input type="text" id="namaLengkap" class="form-input" placeholder="nama lengkap calon siswa"></div>
+                <div><label class="form-label">NISN</label><input type="text" id="nisn" class="form-input" placeholder="NISN calon siswa"></div>
+                <div><label class="form-label">NPUN</label><input type="text" id="npun" class="form-input" placeholder="NPUN calon siswa"></div>
+                <div><label class="form-label">Jenis Kelamin</label><div class="mt-2 flex gap-6"><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="L" class="mr-2">Laki-laki</label><label class="inline-flex items-center"><input type="radio" name="jenisKelamin" value="P" class="mr-2">Perempuan</label></div></div>
+                <div><label class="form-label">Tempat Lahir</label><input type="text" id="tempatLahir" class="form-input" placeholder="tempat lahir calon siswa"></div>
+                <div><label class="form-label">Tanggal Lahir</label><input type="date" id="tglLahir" class="form-input" placeholder="tanggal lahir calon siswa"></div>
+                <div><label class="form-label">Nama Ayah</label><input type="text" id="namaAyah" class="form-input" placeholder="nama lengkap ayah"></div>
+                <div><label class="form-label">Nama Ibu</label><input type="text" id="namaIbu" class="form-input" placeholder="nama lengkap ibu"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div><label class="form-label">Alamat</label><input type="text" id="alamat" class="form-input" placeholder="alamat"></div>
+                <div><label class="form-label">Desa</label><input type="text" id="desa" class="form-input" placeholder="desa"></div>
+                <div><label class="form-label">Kecamatan</label><input type="text" id="kecamatan" class="form-input" placeholder="kecamatan"></div>
+                <div><label class="form-label">Kabupaten</label><input type="text" id="kabupaten" class="form-input" placeholder="kabupaten"></div>
+                <div><label class="form-label">Provinsi</label><input type="text" id="provinsi" class="form-input" placeholder="provinsi"></div>
+                <div><label class="form-label">Kode Pos</label><input type="text" id="kodePos" class="form-input" placeholder="kode pos"></div>
+                <div><label class="form-label">Kontak</label><input type="text" id="kontak" class="form-input" placeholder="nomor kontak yang bisa di hubungi"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div><label class="form-label">Asal Sekolah</label><input type="text" id="asalSekolah" class="form-input" placeholder="asal sekolah"></div>
+                <div><label class="form-label">Kelas</label><select id="kelas" class="form-input"></select></div>
+                <div><label class="form-label">Jurusan Yang Diminati</label><select id="jurusan" class="form-input"><option>- pilih -</option><option>1 | IPA</option><option>2 | IPS</option><option>3 | Bahasa</option></select></div>
+                <div><label class="form-label">Ukuran Pakaian</label><select id="ukuranPakaian" class="form-input"><option>- pilih -</option><option>S (Small)</option><option>M (Medium)</option><option>L (Large)</option><option>XL (Extra Large)</option><option>XXL (2x Extra Large)</option><option>XXXL (3x Extra Large)</option><option>JB (Jumbo)</option></select></div>
+                <div><label class="form-label">Pembayaran</label><input type="number" id="pembayaran" class="form-input" placeholder="pembayaran"></div>
+                <div><label class="form-label">Jalur Pendaftaran</label><select id="jalurPendaftaran" class="form-input"></select></div>
+                <div><label class="form-label">Syarat - Syarat</label><div class="bg-blue-400 text-white p-4 rounded-lg mt-2">Silahkan pilih jalur terlebih dahulu</div></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const tahunPendaftaranInput = document.getElementById('tahunPendaftaran');
+    const jalurPendaftaranSelect = document.getElementById('jalurPendaftaran');
+    const kelasSelect = document.getElementById('kelas');
+    const activeYear = localStorage.getItem('activeSchoolYear');
+
+    // ... (Kode yang sudah ada untuk loading jalur, kelas, dan tahun pendaftaran) ...
+    function loadJalurData() {
+        const data = localStorage.getItem('jalurPendaftaran');
+        return data ? JSON.parse(data) : [];
+    }
+
+    function renderSelectOptions() {
+        const data = loadJalurData();
+        const activeJalur = data.filter(item => item.active);
+        
+        jalurPendaftaranSelect.innerHTML = '<option value="">- pilih -</option>';
+
+        activeJalur.forEach((item, index) => {
+            const option = document.createElement('option');
+            option.value = item.kode;
+            option.textContent = `${index + 1} | ${item.jalur} (${item.kode})`;
+            jalurPendaftaranSelect.appendChild(option);
+        });
+    }
+
+    const kelasAwal = 'A';
+    const kelasAkhir = 'K';
+
+    const defaultKelasOption = document.createElement('option');
+    defaultKelasOption.value = '';
+    defaultKelasOption.textContent = '- Pilih Kelas -';
+    defaultKelasOption.selected = true;
+    kelasSelect.appendChild(defaultKelasOption);
+
+    for (let i = kelasAwal.charCodeAt(0); i <= kelasAkhir.charCodeAt(0); i++) {
+        const option = document.createElement('option');
+        const kelasHuruf = String.fromCharCode(i);
+        option.value = `9 ${kelasHuruf}`;
+        option.textContent = `9 ${kelasHuruf}`;
+        kelasSelect.appendChild(option);
+    }
+    
+    if (activeYear) {
+        tahunPendaftaranInput.value = activeYear;
+    } else {
+        tahunPendaftaranInput.value = 'Belum ada tahun aktif';
+    }
+
+    renderSelectOptions();
+
+    // --- Skrip untuk Menghasilkan Nomor Seri dan Menyimpan Data ---
+    
+    // Fungsi untuk menghasilkan nomor seri baru
+    function generateSerialNumber() {
+        // Ambil counter dari localStorage atau set ke 0
+        let counter = parseInt(localStorage.getItem('ppdbSerialNumberCounter')) || 0;
+        
+        // Tambah counter
+        counter++;
+        localStorage.setItem('ppdbSerialNumberCounter', counter);
+
+        // Ambil 6 digit terakhir dari timestamp
+        const timestamp = Date.now().toString().slice(-6);
+
+        // Format counter menjadi 3 digit (contoh: 1 -> 001)
+        const formattedCounter = counter.toString().padStart(3, '0');
+
+        return `137-${timestamp}.${formattedCounter}`;
+    }
+
+    // Fungsi untuk mengambil semua data dari form
+    function getFormData() {
+        const formElements = document.querySelectorAll('.form-input, select, input[type="radio"]:checked');
+        const data = {};
+        formElements.forEach(element => {
+            const id = element.id;
+            const name = element.name;
+            const value = element.value;
+
+            if (id) {
+                data[id] = value;
+            } else if (name) {
+                // Untuk radio button
+                data[name] = value;
+            }
+        });
+        return data;
+    }
+
+    // Fungsi utama untuk menyimpan data
+    window.saveData = function() {
+        // Ambil data yang sudah ada atau buat array kosong
+        let storedData = JSON.parse(localStorage.getItem('ppdbData')) || [];
+        
+        // Hasilkan nomor seri baru
+        const serialNumber = generateSerialNumber();
+        
+        // Ambil semua data dari formulir
+        const formData = getFormData();
+        
+        // Tambahkan nomor seri ke objek data
+        formData.serialNumber = serialNumber;
+
+        // Tambahkan data baru ke array
+        storedData.push(formData);
+
+        // Simpan kembali array yang sudah diperbarui ke localStorage
+        localStorage.setItem('ppdbData', JSON.stringify(storedData));
+
+        // Tampilkan pesan sukses atau lakukan aksi lainnya (misalnya, reset form)
+        alert(`Data berhasil disimpan dengan nomor seri: ${serialNumber}`);
+
+        // Opsi: reset formulir setelah data disimpan
+        // document.getElementById('formulirId').reset(); // Ganti 'formulirId' dengan ID form
+    }
+
+    // Catatan: Fungsi `saveData()` di atas dapat dipanggil dari luar iframe
+    // dengan menggunakan `window.frames['namaIframe'].saveData()`
+    // atau dari tombol yang ada di parent page.
+});
+</script>
+</body>
+</html>
