@@ -71,14 +71,13 @@ function buildSidebar() {
                                 <a href="kesiswaan/PPDB/syarat_pendaftaran.html" class="sidebar-link" data-page="syarat_pendaftaran">Syarat Pendaftaran</a>
                                 <a href="kesiswaan/PPDB/formulir_pendaftaran.html" class="sidebar-link" data-page="formulir_pendaftaran">Formulir Pendaftaran</a>
                                 <a href="kesiswaan/PPDB/daftar_calon_peserta_didik.html" class="sidebar-link" data-page="daftar_calon_peserta_didik">Daftar Calon Peserta Didik</a>
-                                <a href="kesiswaan/PPDB/pemberian_nisn.html" class="sidebar-link" data-page="pemberian_nisn">Pemberian NISN</a>
+                                <a href="kesiswaan/PPDB/pemberian_nisn.html" class="sidebar-link" data-page="pemberian_nisn">Pemberian NIS</a>
                                 <a href="kesiswaan/PPDB/daftar_peserta_didik_baru.html" class="sidebar-link" data-page="daftar_peserta_didik_baru">Daftar Peserta Didik Baru</a>
                                 <a href="kesiswaan/PPDB/penempatan_kelas.html" class="sidebar-link" data-page="penempatan_kelas">Penempatan Kelas</a>
                                 <a href="kesiswaan/PPDB/laporan_pendaftaran.html" class="sidebar-link" data-page="laporan_pendaftaran">Laporan Pendaftaran</a>
                                 <a href="kesiswaan/PPDB/laporan_kuota.html" class="sidebar-link" data-page="laporan_kuota">Laporan Kuota</a>
                             </div>
                         </div>
-                        <a href="../kesiswaan/ppdb.html" class="sidebar-link" data-page="ppdb">PPDB</a>
                         <a href="../kesiswaan/data_siswa.html" class="sidebar-link" data-page="data_siswa">Data Siswa</a>
                         <a href="../kesiswaan/absensi_siswa.html" class="sidebar-link" data-page="absensi_siswa">Absensi Siswa</a>
                         <a href="../kesiswaan/pelanggaran.html" class="sidebar-link" data-page="pelanggaran">Pelanggaran Siswa</a>
@@ -103,7 +102,8 @@ function buildSidebar() {
 
     const style = document.createElement('style');
     style.textContent = `
-        .sidebar-group-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.625rem 1rem; font-size: 0.875rem; color: #374151; border-radius: 0.5rem; transition: all 0.2s ease; }
+        .sidebar-group-toggle { display: flex; align-items: ce
+        vnter; justify-content: space-between; width: 100%; padding: 0.625rem 1rem; font-size: 0.875rem; color: #374151; border-radius: 0.5rem; transition: all 0.2s ease; }
         .sidebar-group-toggle:hover { background-color: #F3F4F6; color: #1D4ED8; }
         .sidebar-submenu { display: none; padding-left: 2.25rem; margin-top: 0.25rem; border-left: 1px solid #E5E7EB; margin-left: 1.25rem; }
         .sidebar-submenu .sidebar-link { display: block; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #4B5563; border-radius: 0.375rem; }

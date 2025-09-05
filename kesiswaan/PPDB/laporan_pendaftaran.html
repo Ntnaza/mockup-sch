@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Peserta Lengkap - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Daftar Peserta Lengkap</h1>
+                <p class="text-gray-600 mt-1">Hanya menampilkan peserta yang sudah memenuhi semua syarat.</p>
+            </header>
+            
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th class="w-1/12 px-6 py-3">No</th>
+                                <th class="w-9/12 px-6 py-3">Kriteria</th>
+                                <th class="w-2/12 px-6 py-3">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="../../assets/app.js" defer></script>
+    <script src="../../assets/sidebar-sub-ppdb.js" defer></script>
+
+    <script>
+
+
+        // 1. Ambil data dari localStorage dan parse JSON
+        const ppdbData = JSON.parse(localStorage.getItem('ppdbData')) || [];
+
+        // 2. Hitung total pendaftar dan pendaftar berdasarkan jenis kelamin
+        const totalPendaftaran = ppdbData.length;
+        const jumlahLakiLaki = ppdbData.filter(pendaftar => pendaftar.jenisKelamin === 'L').length;
+        const jumlahPerempuan = ppdbData.filter(pendaftar => pendaftar.jenisKelamin === 'P').length;
+
+
+        // 3. Ambil data jalur pendaftaran dari localStorage yang terpisah.
+        const jalurPendaftaran = JSON.parse(localStorage.getItem('jalurPendaftaran')) || [];
+
+        // 4. Filter hanya jalur yang aktif (status === true)
+        const aktifJalurPendaftaran = jalurPendaftaran.filter(jalur => jalur.active === true);
+
+        // 5. Hitung jumlah pendaftar untuk setiap jalur yang aktif.
+        // Menggunakan 'map' untuk membuat array baru berisi objek-objek jalur dan jumlahnya.
+        const jalurCounts = aktifJalurPendaftaran.map(jalur => {
+            // Filter data ppdbData untuk menghitung pendaftar yang memilih jalur ini.
+            const count = ppdbData.filter(pendaftar => pendaftar.jalurPendaftaran === jalur.jalur).length;
+            return {
+                label: jalur.jalur,
+                value: count,
+                type: 'sub'
+            };
+        });
+
+        // 6. Ambil data kuota pendaftaran dari localStorage
+        const quotaPendaftaran = JSON.parse(localStorage.getItem('quotaPendaftaran')) || [];
+
+        // 7. Hitung jumlah pendaftar untuk setiap jurusan berdasarkan kuota yang ada.
+        const jurusanCounts = quotaPendaftaran.map(jurusan => {
+            const count = ppdbData.filter(pendaftar => pendaftar.jurusan === jurusan.keahlian).length;
+            return {
+                label: jurusan.keahlian,
+                value: count,
+                type: 'sub'
+            };
+        });
+
+
+        //  8. Hitung jumlah calon siswa yang sudah registrasi (syarat lengkap) berdasarkan jurusan
+        const semuaSyarat = JSON.parse(localStorage.getItem('syaratPendaftaran') || '[]');
+        const jurusanRegistrasiCounts = quotaPendaftaran.map(jurusan => {
+            const count = ppdbData.filter(pendaftar => {
+                if (pendaftar.jurusan !== jurusan.keahlian) return false;
+                const requiredDocs = semuaSyarat
+                    .filter(s => s.isActive && s.jalur === pendaftar.jalurPendaftaran)
+                    .map(s => s.syarat.toLowerCase().replace(/ /g, '_'));
+                const missingDocs = requiredDocs.filter(doc => !pendaftar.documents?.[doc]);
+                return missingDocs.length === 0;
+            }).length;
+            return {
+                label: jurusan.keahlian,
+                value: count,
+                type: 'sub'
+            };
+        });
+
+
+
+
+        // Data yang akan ditampilkan di tabel
+        const data = [
+            {
+                label: 'Total Pendaftaran',
+                value: totalPendaftaran,
+                type: 'single'
+            },
+            {
+                label: 'Jumlah Pendaftar Laki-Laki',
+                value: jumlahLakiLaki,
+                type: 'single'
+            },
+            {
+                label: 'Jumlah Pendaftar Perempuan',
+                value: jumlahPerempuan,
+                type: 'single'
+            },
+            {
+                label: 'Laporan berdasarkan jalur pendaftaran',
+                type: 'header'
+            },
+            ...jalurCounts,
+            {
+                label: 'Laporan berdasarkan jurusan',
+                type: 'header'
+            },
+            ...jurusanCounts,
+            {
+                label: 'Laporan calon siswa yang sudah registrasi berdasarkan jurusan',
+                type: 'header'
+            },
+            ...jurusanRegistrasiCounts
+        ];
+
+        const tableBody = document.getElementById('reportTableBody');
+
+        // Menghasilkan baris tabel berdasarkan data
+        let counter = 1;
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b';
+
+            if (item.type === 'single') {
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-gray-900">${counter++}</td>
+                    <td class="px-6 py-4">${item.label}</td>
+                    <td class="px-6 py-4">${item.value}</td>
+                `;
+            } else if (item.type === 'header') {
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-gray-900">${counter++}</td>
+                    <td class="px-6 py-4 font-bold text-gray-900" colspan="2">${item.label}</td>
+                `;
+            } else if (item.type === 'sub') {
+                row.innerHTML = `
+                    <td class="px-6 py-4"></td>
+                    <td class="px-6 py-4 pl-10">- ${item.label}</td>
+                    <td class="px-6 py-4">${item.value}</td>
+                `;
+            }
+            
+            tableBody.appendChild(row);
+        });
+    </script>
+
+</body>
+</html>

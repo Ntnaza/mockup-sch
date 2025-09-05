@@ -101,7 +101,7 @@ function buildSidebar() {
                                 <a href="../kesiswaan/PPDB/syarat_pendaftaran.html" class="sidebar-link" data-page="syarat_pendaftaran">Syarat Pendaftaran</a>
                                 <a href="../kesiswaan/PPDB/formulir_pendaftaran.html" class="sidebar-link" data-page="formulir_pendaftaran">Formulir Pendaftaran</a>
                                 <a href="../kesiswaan/PPDB/daftar_calon_peserta_didik.html" class="sidebar-link" data-page="daftar_calon_peserta_didik">Daftar Calon Peserta Didik</a>
-                                <a href="../kesiswaan/PPDB/pemberian_nisn.html" class="sidebar-link" data-page="pemberian_nisn">Pemberian NISN</a>
+                                <a href="../kesiswaan/PPDB/pemberian_nisn.html" class="sidebar-link" data-page="pemberian_nisn">Pemberian NIS</a>
                                 <a href="../kesiswaan/PPDB/daftar_peserta_didik_baru.html" class="sidebar-link" data-page="daftar_peserta_didik_baru">Daftar Peserta Didik Baru</a>
                                 <a href="../kesiswaan/PPDB/penempatan_kelas.html" class="sidebar-link" data-page="penempatan_kelas">Penempatan Kelas</a>
                                 <a href="../kesiswaan/PPDB/laporan_pendaftaran.html" class="sidebar-link" data-page="laporan_pendaftaran">Laporan Pendaftaran</a>

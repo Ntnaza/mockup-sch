@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Pendaftaran - Aplikasi Sekolah</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<style>
+.sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+</style>
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="flex h-screen">
+    <div id="sidebar-placeholder"></div>
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+        <header>
+            <h1 class="text-3xl font-bold text-gray-900">Laporan Pendaftaran</h1>
+            <p class="text-gray-600 mt-1">Menampilkan ringkasan jumlah pendaftar dan registrasi per paket keahlian.</p>
+        </header>
+        <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Tahun Pendaftaran</h3><br>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 text-center mt-1 mb-0">LAPORAN QUOTA PPDB</h3>
+                <h3 class="text-xl font-bold text-gray-900 text-center mt-0 mb-0">SMK TESTING</h3>
+                <h3 class="text-xl font-bold text-gray-900 text-center mt-0 mb-5" id="activeYear"></h3>
+                
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">No</th>
+                            <th class="px-6 py-3">Paket Keahlian</th>
+                            <th class="px-6 py-3">Jumlah Kelas</th>
+                            <th class="px-6 py-3">Quota</th>
+                            <th class="px-6 py-3">Jumlah Pendaftar</th>
+                            <th class="px-6 py-3">Sisa Quota</th>
+                            <th class="px-6 py-3">Sudah Registrasi</th>
+                            <th class="px-6 py-3">Presentase</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrationsTableBody">
+                        <!-- Data laporan pendaftaran akan di-render di sini -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+
+
+<script src="../../assets/app.js" defer></script>
+<script src="../../assets/sidebar-sub-ppdb.js" defer></script>
+
+<script>
+window.App = window.App || {};
+
+window.App.main = {
+    localStorageKeyRegistrations: 'ppdbData',
+    localStorageKeyQuota: 'quotaPendaftaran',
+
+    loadQuotaTable: () => {
+        const tbody = document.getElementById('registrationsTableBody');
+        tbody.innerHTML = '';
+        // Tampilkan tahun pelajaran aktif
+        const activeYear = localStorage.getItem('activeSchoolYear') || '-';
+        document.getElementById('activeYear').textContent = "TAHUN PELAJARAN "+ activeYear;
+
+        // Ambil data quota keahlian
+        const quotaData = JSON.parse(localStorage.getItem(window.App.main.localStorageKeyQuota) || '[]');
+
+        // Ambil data pendaftar
+        const registrations = JSON.parse(localStorage.getItem(window.App.main.localStorageKeyRegistrations) || '[]');
+        const semuaSyarat = JSON.parse(localStorage.getItem('syaratPendaftaran') || '[]');
+
+        if (!quotaData.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Belum ada data quota keahlian.</td></tr>`;
+            return;
+        }
+
+        let totalKelas = 0;
+        let totalQuotaAll = 0;
+        let totalPendaftar = 0;
+        let totalSisaQuota = 0;
+        let totalRegistrasi = 0;
+
+        quotaData.forEach((quota, idx) => {
+            const keahlian = quota.keahlian;
+            const jumlahKelas = Number(quota.jumlah_kelas) || 0;
+            const quotaJumlah = Number(quota.quota) || 0;
+
+            // Jumlah pendaftar semua (ada di ppdbData)
+            const jumlahPendaftar = registrations.filter(r => r.jurusan === keahlian).length;
+
+            // Hitung jumlah sudah registrasi (syarat lengkap)
+            const sudahRegistrasi = registrations.filter(r => r.jurusan === keahlian)
+                .filter(r => {
+                    const requiredDocs = semuaSyarat
+                        .filter(s => s.isActive && s.jalur === r.jalurPendaftaran)
+                        .map(s => s.syarat.toLowerCase().replace(/ /g, '_'));
+                    const missingDocs = requiredDocs.filter(doc => !r.documents?.[doc]);
+                    return missingDocs.length === 0;
+                }).length;
+
+            const sisaQuota = quotaJumlah - sudahRegistrasi;
+            const presentase = quotaJumlah ? Math.round((sudahRegistrasi / quotaJumlah) * 100) : 0;
+
+            // Tambah ke total
+            totalKelas += jumlahKelas;
+            totalQuotaAll += quotaJumlah;
+            totalPendaftar += jumlahPendaftar;
+            totalSisaQuota += sisaQuota;
+            totalRegistrasi += sudahRegistrasi;
+
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b hover:bg-gray-50';
+            row.innerHTML = `
+                <td class="px-6 py-4">${idx + 1}</td>
+                <td class="px-6 py-4 font-bold text-blue-600">${keahlian}</td>
+                <td class="px-6 py-4">${jumlahKelas}</td>
+                <td class="px-6 py-4">${quotaJumlah}</td>
+                <td class="px-6 py-4">${jumlahPendaftar}</td>
+                <td class="px-6 py-4">${sisaQuota}</td>
+                <td class="px-6 py-4">${sudahRegistrasi}</td>
+                <td class="px-6 py-4">${presentase}%</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        // Tambahkan baris TOTAL
+        const totalPresentase = totalQuotaAll ? Math.round((totalRegistrasi / totalQuotaAll) * 100) : 0;
+
+        const totalRow = document.createElement('tr');
+        totalRow.className = 'bg-gray-100 font-bold border-t';
+        totalRow.innerHTML = `
+            <td class="px-6 py-4">#</td>
+            <td class="px-6 py-4 text-gray-800">TOTAL</td>
+            <td class="px-6 py-4">${totalKelas}</td>
+            <td class="px-6 py-4">${totalQuotaAll}</td>
+            <td class="px-6 py-4">${totalPendaftar}</td>
+            <td class="px-6 py-4">${totalSisaQuota}</td>
+            <td class="px-6 py-4">${totalRegistrasi}</td>
+            <td class="px-6 py-4">${totalPresentase}%</td>
+        `;
+        tbody.appendChild(totalRow);
+    }
+};
+
+// Jalankan saat halaman siap
+document.addEventListener('DOMContentLoaded', () => {
+    window.App.main.loadQuotaTable();
+});
+</script>
+
+
+</body>
+</html>
