@@ -182,21 +182,6 @@ function buildSidebar() {
             color: white;
             font-weight: 600;
         }
-        .sidebar-group-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0.625rem 1rem;
-            font-size: 0.875rem;
-            color: #374151;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        .sidebar-group-toggle:hover {
-            background-color: #F3F4F6;
-            color: #1D4ED8;
-        }
         .sidebar-group-submenu {
             display: none;
             padding-left: 1.25rem;

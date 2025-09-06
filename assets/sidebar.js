@@ -110,6 +110,24 @@ function buildSidebar() {
         .sidebar-submenu .sidebar-link:hover { background-color: #DBEAFE; color: #1E40AF; }
         .sidebar-link.active-sub { background-color: #3B82F6; color: white; font-weight: 500; }
         .rotate-180 { transform: rotate(180deg); }
+        ..sidebar-group-submenu {
+            display: none;
+            padding-left: 1.25rem;
+            margin-top: 0.25rem;
+            border-left: 1px solid #E5E7EB;
+            margin-left: 1.25rem;
+        }
+        .sidebar-group-submenu .sidebar-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #4B5563;
+            border-radius: 0.375rem;
+        }
+        .sidebar-group-submenu .sidebar-link:hover {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
     `;
     document.head.appendChild(style);
 
