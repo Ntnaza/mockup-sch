@@ -17,19 +17,12 @@ function buildSidebar() {
                     <span>Dashboard</span>
                 </a>
                 
-                <!-- Profil Sekolah -->
-                <div class="sidebar-group mt-2">
-                    <button class="sidebar-group-toggle">
-                        <span class="flex items-center gap-3"><ion-icon name="business-outline" class="w-5 h-5"></ion-icon><span>Profil Sekolah</span></span>
-                        <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
-                    </button>
-                    <div class="sidebar-submenu">
-                        <a href="#" class="sidebar-link">Profil</a>
-                        <a href="#" class="sidebar-link">Gambar</a>
-                        <a href="#" class="sidebar-link">Alamat</a>
-                        <a href="#" class="sidebar-link">Peta</a>
-                    </div>
-                </div>
+                
+                <!-- Profil Sekolah (Link Langsung) -->
+                <a href="../../../profil_sekolah/profil.html" class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-200 mt-2" data-page="profil">
+                    <ion-icon name="business-outline" class="w-5 h-5"></ion-icon>
+                    <span>Profil Sekolah</span>
+                </a>
 
                 <!-- Kepegawaian -->
                 <div class="sidebar-group">
