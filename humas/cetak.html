@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cetak QR Buku Tamu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    @media print {
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: auto;
+        margin: 0;
+      }
+      .print-box {
+        margin: auto;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-box max-w-sm w-full bg-white p-6 rounded-xl shadow text-center">
+    <h1 class="text-xl font-bold mb-4">Tiket Buku Tamu</h1>
+    <div id="qrcode" class="mb-4 flex justify-center"></div>
+
+    <div id="guestData" class="text-left space-y-2"></div>
+  </div>
+
+  <script>
+    const guestData = JSON.parse(localStorage.getItem("last_guest"));
+    if (!guestData) {
+      document.body.innerHTML = "<p class='text-center mt-20'>Data tamu tidak ditemukan!</p>";
+    } else {
+      // Generate QR Code
+      new QRCode(document.getElementById("qrcode"), {
+        text: guestData.id.toString(),
+        width: 200,
+        height: 200
+      });
+
+      // Tampilkan data tamu
+      const container = document.getElementById("guestData");
+      container.innerHTML = `
+        <p><strong>Nama:</strong> ${guestData.nama}</p>
+        <p><strong>Instansi:</strong> ${guestData.instansi}</p>
+        <p><strong>No. HP:</strong> ${guestData.hp}</p>
+        <p><strong>Keperluan:</strong> ${guestData.keperluan}</p>
+      `;
+
+      // otomatis buka print dialog
+      window.print();
+    }
+  </script>
+</body>
+</html>
