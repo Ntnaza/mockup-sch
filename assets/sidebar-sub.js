@@ -34,6 +34,7 @@ function buildSidebar() {
                         <a href="../kepegawaian/tugas_pegawai.html" class="sidebar-link" data-page="tugas_pegawai">Tugas Pegawai</a>
                         <a href="../kepegawaian/absensi_guru.html" class="sidebar-link" data-page="absensi_guru">Absensi Pegawai</a>
                         <a href="../kepegawaian/mutasi_pegawai.html" class="sidebar-link" data-page="mutasi_pegawai">Mutasi Pegawai</a>
+                        <a href="../kepegawaian/kartu_pegawai.html" class="sidebar-link" data-page="kartu_pegawai.html">Kartu Pegawai</a>
                     </div>
                 </div>
                 
@@ -111,6 +112,7 @@ function buildSidebar() {
                         <a href="../kesiswaan/data_siswa.html" class="sidebar-link" data-page="data_siswa">Data Siswa</a>
                         <a href="../kesiswaan/absensi_siswa.html" class="sidebar-link" data-page="absensi_siswa">Absensi Siswa</a>
                         <a href="../kesiswaan/pelanggaran.html" class="sidebar-link" data-page="pelanggaran">Pelanggaran Siswa</a>
+                        <a href="../kesiswaan/kartu_siswa.html" class="sidebar-link" data-page="kartu_siswa">Kartu Siswa</a>
                     </div>
                 </div>
 

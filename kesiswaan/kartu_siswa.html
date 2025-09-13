@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartu Siswa - Aplikasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.min.js"></script>
+    <style>
+        .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
+        .form-input { 
+            width: 100%; border-radius: 0.375rem; border: 1px solid #D1D5DB; 
+            padding: 0.5rem 0.75rem; font-size: 0.875rem; 
+        }
+        .form-label { display: block; margin-bottom: 0.25rem; font-size: 0.875rem; color: #4B5563; }
+        .id-card {
+            width: 320px;
+            aspect-ratio: 5.4 / 8.6; /* Rasio standar kartu ID */
+            transform-origin: top left;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none; }
+            .id-card-print-wrapper { 
+                page-break-inside: avoid; 
+                padding: 1rem;
+                display: inline-block;
+            }
+            .id-card { border: 1px solid #ccc !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header>
+                <h1 class="text-3xl font-bold text-gray-900">Kartu Siswa</h1>
+                <p class="text-gray-600 mt-1">Desain template dan cetak kartu identitas siswa.</p>
+            </header>
+            
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Kolom Kiri: Editor Template -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 border-b pb-2">Editor Template Kartu</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="template-logo" class="form-label">Logo Sekolah</label>
+                            <input type="file" id="template-logo" class="text-sm" accept="image/*">
+                        </div>
+                        <div>
+                            <label for="template-bg-image" class="form-label">Latar Kartu (Gambar)</label>
+                            <input type="file" id="template-bg-image" class="text-sm" accept="image/*">
+                        </div>
+                        <div>
+                            <label for="template-school-name" class="form-label">Nama Sekolah</label>
+                            <input type="text" id="template-school-name" class="form-input" value="SMK NURUL ISLAM CIANJUR">
+                        </div>
+                        <div>
+                            <label for="template-card-title" class="form-label">Judul Kartu</label>
+                            <input type="text" id="template-card-title" class="form-input" value="KARTU PELAJAR">
+                        </div>
+                    </div>
+                    <div class="mt-6 border-t pt-4">
+                        <button id="save-template-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg w-full flex items-center justify-center text-sm">
+                            <ion-icon name="save-outline" class="mr-2"></ion-icon>
+                            Simpan Template
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Pratinjau & Opsi Cetak -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 border-b pb-2">Pratinjau & Cetak</h3>
+                    <div class="flex justify-center mb-6">
+                        <div id="card-preview-container" class="transform scale-90">
+                           <div id="id-card-preview" class="id-card bg-white rounded-lg shadow-md flex flex-col items-center text-center border-2 border-gray-200 overflow-hidden" style="background-size: cover; background-position: center;">
+                                <div id="card-header" class="w-full flex items-center gap-2 p-2 text-white" style="background-color: transparent;">
+                                    <div class="h-12 w-12 bg-white rounded-full p-1 flex items-center justify-center flex-shrink-0">
+                                        <img id="card-logo" src="https://placehold.co/50x50/ccc/000?text=Logo" class="h-full w-full object-contain">
+                                    </div>
+                                    <div>
+                                        <p id="card-title" class="font-bold text-sm text-left">KARTU PELAJAR</p>
+                                        <p id="card-school-name" class="text-xs text-left">SMK NURUL ISLAM CIANJUR</p>
+                                    </div>
+                                </div>
+                                <div id="card-body" class="flex flex-col items-center p-4 w-full">
+                                    <img id="card-photo" src="https://placehold.co/150x200" class="w-24 h-32 rounded-md object-cover border-2 border-white shadow-lg">
+                                    <h3 id="card-name" class="font-bold mt-3 text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">Nama Siswa</h3>
+                                    <p id="card-nis" class="text-sm text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">NIS: -</p>
+                                    <img id="card-qrcode" src="" class="w-28 h-28 mt-4">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t pt-4">
+                        <!-- ===== FILTER KELAS DITAMBAHKAN DI SINI ===== -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                             <div>
+                                <label for="filter-kelas" class="form-label">Filter Kelas</label>
+                                <select id="filter-kelas" class="form-input"></select>
+                            </div>
+                            <div>
+                                <label for="print-select-student" class="form-label">Cetak Per Orang</label>
+                                <select id="print-select-student" class="form-input"></select>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                            <button id="print-one-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-sm w-full">Cetak Pilihan</button>
+                            <button id="print-all-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-sm w-full">Cetak Semua (dari filter)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="print-area" class="hidden"></div>
+    
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    <script src="../assets/app.js" defer></script>
+    <script src="../assets/sidebar-sub.js" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const STUDENT_KEY = 'schoolStudents';
+        const CLASS_KEY = 'schoolClasses';
+        const TEMPLATE_KEY = 'schoolIdCardTemplate_Student';
+        
+        const students = JSON.parse(localStorage.getItem(STUDENT_KEY)) || [];
+        const classes = JSON.parse(localStorage.getItem(CLASS_KEY)) || [];
+
+        const logoInput = document.getElementById('template-logo');
+        const bgImageInput = document.getElementById('template-bg-image');
+        const schoolNameInput = document.getElementById('template-school-name');
+        const cardTitleInput = document.getElementById('template-card-title');
+        const saveTemplateBtn = document.getElementById('save-template-btn');
+        
+        const idCardPreview = document.getElementById('id-card-preview');
+        const cardLogo = document.getElementById('card-logo');
+        const cardSchoolName = document.getElementById('card-school-name');
+        const cardTitle = document.getElementById('card-title');
+        const cardHeader = document.getElementById('card-header');
+        const cardBody = document.getElementById('card-body'); 
+        const cardPhoto = document.getElementById('card-photo');
+        const cardName = document.getElementById('card-name');
+        const cardNis = document.getElementById('card-nis');
+        const cardQrcode = document.getElementById('card-qrcode');
+        
+        const filterKelas = document.getElementById('filter-kelas');
+        const printSelect = document.getElementById('print-select-student');
+        const printOneBtn = document.getElementById('print-one-btn');
+        const printAllBtn = document.getElementById('print-all-btn');
+        const printArea = document.getElementById('print-area');
+
+        const createQrCode = (text) => {
+            try {
+                const qr = qrcode(0, 'L');
+                qr.addData(text);
+                qr.make();
+                return qr.createDataURL(4, 4);
+            } catch (e) { return ''; }
+        };
+
+        const updatePreview = () => {
+            cardSchoolName.textContent = schoolNameInput.value;
+            cardTitle.textContent = cardTitleInput.value;
+        };
+
+        const updatePreviewStudent = (studentId) => {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                cardPhoto.src = student.fotoData || 'https://placehold.co/150x200';
+                cardName.textContent = student.nama;
+                cardNis.textContent = `NIS: ${student.nis || '-'}`;
+                cardQrcode.src = createQrCode(student.id);
+            } else {
+                cardPhoto.src = 'https://placehold.co/150x200';
+                cardName.textContent = 'Pilih Siswa';
+                cardNis.textContent = `NIS: -`;
+                cardQrcode.src = '';
+            }
+        };
+        
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        const handleImageUpload = (fileInput, callback) => {
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const base64 = await fileToBase64(file);
+                    callback(base64);
+                }
+            });
+        };
+        
+        handleImageUpload(logoInput, (base64) => { cardLogo.src = base64; });
+        handleImageUpload(bgImageInput, (base64) => {
+            idCardPreview.style.backgroundImage = `url('${base64}')`;
+            cardBody.style.backgroundColor = 'transparent';
+        });
+
+        const saveTemplate = async () => {
+            const templateData = {
+                schoolName: schoolNameInput.value,
+                cardTitle: cardTitleInput.value,
+                logoData: cardLogo.src,
+                bgImageData: idCardPreview.style.backgroundImage,
+            };
+            localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templateData));
+            App.helpers.showToast('Template berhasil disimpan!');
+        };
+        
+        const loadTemplate = () => {
+            const savedTemplate = JSON.parse(localStorage.getItem(TEMPLATE_KEY));
+            if (savedTemplate) {
+                schoolNameInput.value = savedTemplate.schoolName;
+                cardTitleInput.value = savedTemplate.cardTitle;
+                if (savedTemplate.logoData) cardLogo.src = savedTemplate.logoData;
+                if (savedTemplate.bgImageData) {
+                    idCardPreview.style.backgroundImage = savedTemplate.bgImageData;
+                    cardBody.style.backgroundColor = 'transparent';
+                }
+                updatePreview();
+            }
+        };
+        
+        saveTemplateBtn.addEventListener('click', saveTemplate);
+        schoolNameInput.addEventListener('input', updatePreview);
+        cardTitleInput.addEventListener('input', updatePreview);
+        
+        // --- LOGIKA BARU UNTUK FILTER KELAS ---
+        const populateStudentDropdown = (classId = null) => {
+            const filteredStudents = classId ? students.filter(s => s.kelas === classId) : students;
+            printSelect.innerHTML = '<option value="">- Pilih Siswa -</option>';
+            filteredStudents.forEach(s => {
+                printSelect.innerHTML += `<option value="${s.id}">${s.nama}</option>`;
+            });
+            if (filteredStudents.length > 0) {
+                printSelect.value = filteredStudents[0].id;
+                updatePreviewStudent(filteredStudents[0].id);
+            } else {
+                updatePreviewStudent(null);
+            }
+        };
+
+        const populateClassDropdown = () => {
+            filterKelas.innerHTML = '<option value="">Semua Kelas</option>';
+            classes.forEach(c => {
+                filterKelas.innerHTML += `<option value="${c.id}">${c.nama}</option>`;
+            });
+        };
+
+        filterKelas.addEventListener('change', () => {
+            populateStudentDropdown(filterKelas.value || null);
+        });
+        printSelect.addEventListener('change', () => updatePreviewStudent(printSelect.value));
+        
+        const generateCardHTML = (student, template) => {
+            return `
+            <div class="id-card-print-wrapper">
+                <div class="id-card bg-white rounded-lg shadow-md flex flex-col items-center text-center border-2 overflow-hidden" style="background-image: ${template.bgImage}; background-size: cover; background-position: center;">
+                    <div class="w-full flex items-center gap-2 p-2 text-white" style="background-color: transparent;">
+                        <div class="h-12 w-12 bg-white rounded-full p-1 flex items-center justify-center flex-shrink-0">
+                           <img src="${template.logoSrc}" class="h-full w-full object-contain">
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-left">${template.cardTitle}</p>
+                            <p class="text-xs text-left">${template.schoolName}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center p-4 w-full" style="background-color: transparent;">
+                        <img src="${student.fotoData || 'https://placehold.co/150x200'}" class="w-24 h-32 rounded-md object-cover border-2 border-white shadow-lg">
+                        <h3 class="font-bold mt-3 text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">${student.nama}</h3>
+                        <p class="text-sm text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.5);">NIS: ${student.nis || '-'}</p>
+                        <img src="${createQrCode(student.id)}" class="w-28 h-28 mt-4">
+                    </div>
+                </div>
+            </div>`;
+        };
+        
+        const printCards = (studentList) => {
+            const template = {
+                logoSrc: cardLogo.src,
+                schoolName: schoolNameInput.value,
+                cardTitle: cardTitleInput.value,
+                bgImage: idCardPreview.style.backgroundImage
+            };
+            printArea.innerHTML = '';
+            studentList.forEach(student => {
+                printArea.innerHTML += generateCardHTML(student, template);
+            });
+            window.print();
+        };
+
+        printOneBtn.addEventListener('click', () => {
+            const selectedId = printSelect.value;
+            if (selectedId) {
+                const selectedStudent = students.find(s => s.id === selectedId);
+                printCards([selectedStudent]);
+            } else {
+                alert('Silakan pilih siswa terlebih dahulu.');
+            }
+        });
+
+        printAllBtn.addEventListener('click', () => {
+            const selectedClassId = filterKelas.value;
+            const studentsToPrint = selectedClassId ? students.filter(s => s.kelas === selectedClassId) : students;
+
+            if (studentsToPrint.length > 0) {
+                printCards(studentsToPrint);
+            } else {
+                alert('Tidak ada data siswa untuk dicetak pada filter ini.');
+            }
+        });
+        
+        // Inisialisasi
+        populateClassDropdown();
+        populateStudentDropdown();
+        loadTemplate();
+    });
+    </script>
+</body>
+</html>
+

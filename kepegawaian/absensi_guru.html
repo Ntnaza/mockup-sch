@@ -3,26 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi Pegawai - Aplikasi Sekolah</title>
+    <title>Absensi Guru - Aplikasi Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
+        .modal { transition: opacity 0.25s ease; }
         .sidebar-link.active { background-color: #3b82f6; color: white; font-weight: 600; }
         .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
-        /* Style untuk radio button custom */
-        .radio-label {
-            padding: 0.5rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 9999px;
-            cursor: pointer;
+        .status-badge { cursor: pointer; }
+        .pagination-link {
+            padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; color: #374151;
             transition: all 0.2s ease;
-            font-size: 0.875rem;
         }
-        input[type="radio"]:checked + .radio-label {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
+        .pagination-link:hover { background-color: #f3f4f6; }
+        .pagination-link.active { background-color: #3b82f6; color: white; border-color: #3b82f6; }
+        .pagination-link:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -30,129 +26,347 @@
         <div id="sidebar-placeholder"></div>
         
         <main class="flex-1 overflow-y-auto p-6 md:p-10">
+            <header class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Laporan Absensi Guru</h1>
+                    <p class="text-gray-600 mt-1">Lihat laporan kehadiran harian dan riwayat absensi.</p>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <a href="../kepegawaian/kartu_pegawai.html" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm w-full justify-center">
+                        <ion-icon name="id-card-outline" class="mr-2"></ion-icon>Cetak
+                    </a>
+                    <button id="scan-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm w-full justify-center">
+                        <ion-icon name="qr-code-outline" class="mr-2"></ion-icon>Scan
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Laporan Hari Ini -->
             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Absensi Pegawai</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Laporan Hari Ini (<span id="current-date"></span>)</h3>
                 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
                         <p class="font-bold">INFORMASI:</p>
                         <ul class="list-disc list-inside text-sm mt-1">
-                            <li>Halaman ini digunakan untuk <strong>Mendata Kehadiran Pegawai</strong>.</li>
-                            <li>Absen wajib di <strong>update</strong> Setiap hari.</li>
-                            <!-- <li>Menambah <strong>Data pegawai </strong><ion-icon name="add-circle-outline" class="inline-block align-middle"></ion-icon>.</li> -->
+                            <li>Halaman ini digunakan untuk absen <strong> pegawai</strong>.</li>
+                            <li>Klik tombol <strong>Cetak</strong> jika belum memiliki <strong>Kartu</strong>.</li>
+                            <li>Klik tombol <strong>Scan</strong> untuk absen <strong>kehadiran</strong><ion-icon name="add-circle-outline" class="inline-block align-middle"></ion-icon>.</li>
                         </ul>
                     </div>
-                <!-- Kontrol Tanggal & Tombol Simpan -->
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-6">
-                    <div class="flex items-center gap-2">
-                        <label for="tanggalAbsen" class="font-semibold text-gray-700">Tanggal Absensi:</label>
-                        <input type="date" id="tanggalAbsen" class="border rounded-lg py-2 px-3 text-sm">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 text-center">
+                    <div class="bg-green-100 p-4 rounded-lg"><p class="text-2xl font-bold text-green-700" id="today-hadir">0</p><p class="text-sm text-green-600">Hadir</p></div>
+                    <div class="bg-cyan-100 p-4 rounded-lg"><p class="text-2xl font-bold text-cyan-700" id="today-telat">0</p><p class="text-sm text-cyan-600">Telat</p></div>
+                    <div class="bg-yellow-100 p-4 rounded-lg"><p class="text-2xl font-bold text-yellow-700" id="today-izin">0</p><p class="text-sm text-yellow-600">Izin</p></div>
+                    <div class="bg-orange-100 p-4 rounded-lg"><p class="text-2xl font-bold text-orange-700" id="today-sakit">0</p><p class="text-sm text-orange-600">Sakit</p></div>
+                    <div class="bg-red-100 p-4 rounded-lg"><p class="text-2xl font-bold text-red-700" id="today-alpha">0</p><p class="text-sm text-red-600">Alpha</p></div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm"><thead class="bg-gray-50 text-left text-gray-600"><tr><th class="p-3">Nama Pegawai</th><th class="p-3">Status</th><th class="p-3">Waktu Absen</th></tr></thead><tbody id="today-log-body"></tbody></table>
+                </div>
+                 <div class="mt-4 flex justify-between items-center text-sm" id="today-pagination-controls"></div>
+            </div>
+
+            <!-- Riwayat Absensi -->
+             <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <div class="flex items-center gap-4 mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Riwayat Absensi</h3>
+                    <input type="date" id="history-date-picker" class="border rounded-lg py-2 px-3 text-sm">
+                </div>
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+                        <p class="font-bold">INFORMASI:</p>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            <li>Halaman ini digunakan untuk Mem <strong>Filter </strong>kehadiran dari <strong>tanggal</strong> tertentu</li>
+                        </ul>
                     </div>
-                    <button id="saveBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center text-sm w-full md:w-auto justify-center">
-                        <ion-icon name="save-outline" class="mr-2"></ion-icon>Simpan Absensi
-                    </button>
+                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 text-center">
+                    <div class="bg-green-100 p-4 rounded-lg"><p class="text-2xl font-bold text-green-700" id="history-hadir">0</p><p class="text-sm text-green-600">Hadir</p></div>
+                    <div class="bg-cyan-100 p-4 rounded-lg"><p class="text-2xl font-bold text-cyan-700" id="history-telat">0</p><p class="text-sm text-cyan-600">Telat</p></div>
+                    <div class="bg-yellow-100 p-4 rounded-lg"><p class="text-2xl font-bold text-yellow-700" id="history-izin">0</p><p class="text-sm text-yellow-600">Izin</p></div>
+                    <div class="bg-orange-100 p-4 rounded-lg"><p class="text-2xl font-bold text-orange-700" id="history-sakit">0</p><p class="text-sm text-orange-600">Sakit</p></div>
+                    <div class="bg-red-100 p-4 rounded-lg"><p class="text-2xl font-bold text-red-700" id="history-alpha">0</p><p class="text-sm text-red-600">Alpha</p></div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm"><thead class="bg-gray-50 text-left text-gray-600"><tr><th class="p-3">Nama Pegawai</th><th class="p-3">Status</th><th class="p-3">Waktu Absen</th></tr></thead><tbody id="history-log-body"></tbody></table>
+                </div>
+                <div class="mt-4 flex justify-between items-center text-sm" id="history-pagination-controls"></div>
+            </div>
+
+            <!-- ===== BAGIAN BARU: Laporan Per Pegawai ===== -->
+            <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Laporan Per Pegawai</h3>
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+                        <p class="font-bold">INFORMASI:</p>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            <li>Halaman ini digunakan untuk Mem <strong>Filter </strong>kehadiran per <strong>Orangan</strong>.</li>
+                        </ul>
+                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end mb-6 border-b pb-6">
+                    <div>
+                        <label for="individual-teacher-select" class="text-sm font-semibold">Pilih Pegawai</label>
+                        <select id="individual-teacher-select" class="mt-1 w-full border-gray-300 rounded-md"></select>
+                    </div>
+                    <div>
+                        <label for="start-date-select" class="text-sm font-semibold">Dari Tanggal</label>
+                        <input type="date" id="start-date-select" class="mt-1 w-full border-gray-300 rounded-md">
+                    </div>
+                     <div>
+                        <label for="end-date-select" class="text-sm font-semibold">Sampai Tanggal</label>
+                        <input type="date" id="end-date-select" class="mt-1 w-full border-gray-300 rounded-md">
+                    </div>
                 </div>
 
-                <!-- Tabel Absensi -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 w-10">No</th>
-                                <th class="px-6 py-3">Nama Pegawai</th>
-                                <th class="px-6 py-3 text-center">Kehadiran</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Data absensi akan dimuat di sini -->
-                        </tbody>
-                    </table>
+                <div id="individual-report-content" class="hidden">
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 text-center">
+                        <div class="bg-green-100 p-4 rounded-lg"><p class="text-2xl font-bold text-green-700" id="individual-hadir">0</p><p class="text-sm text-green-600">Hadir</p></div>
+                        <div class="bg-cyan-100 p-4 rounded-lg"><p class="text-2xl font-bold text-cyan-700" id="individual-telat">0</p><p class="text-sm text-cyan-600">Telat</p></div>
+                        <div class="bg-yellow-100 p-4 rounded-lg"><p class="text-2xl font-bold text-yellow-700" id="individual-izin">0</p><p class="text-sm text-yellow-600">Izin</p></div>
+                        <div class="bg-orange-100 p-4 rounded-lg"><p class="text-2xl font-bold text-orange-700" id="individual-sakit">0</p><p class="text-sm text-orange-600">Sakit</p></div>
+                        <div class="bg-red-100 p-4 rounded-lg"><p class="text-2xl font-bold text-red-700" id="individual-alpha">0</p><p class="text-sm text-red-600">Alpha</p></div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm"><thead class="bg-gray-50 text-left text-gray-600"><tr><th class="p-3">Tanggal</th><th class="p-3">Status</th><th class="p-3">Waktu Absen</th></tr></thead><tbody id="individual-log-body"></tbody></table>
+                    </div>
                 </div>
+
             </div>
         </main>
     </div>
 
-    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+    <!-- Modals -->
+    <div id="scan-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6 text-center">
+            <h3 class="text-xl font-bold mb-4">Scan QR Code ID Card</h3>
+            <div id="reader" class="w-full"></div>
+            <button id="close-scan-btn" class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg w-full">Tutup</button>
+        </div>
+    </div>
+     <div id="status-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-xl font-bold mb-4">Ubah Status Kehadiran</h3>
+            <p class="mb-4">Ubah status untuk <strong id="status-modal-teacher-name"></strong> pada tanggal <strong id="status-modal-date"></strong>.</p>
+            <select id="status-modal-select" class="w-full border-gray-300 rounded-md shadow-sm">
+                <option value="Hadir">Hadir</option><option value="Telat">Telat</option><option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option><option value="Alpha">Alpha</option>
+            </select>
+            <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
+                <button id="cancel-status-btn" class="bg-gray-200 px-4 py-2 rounded-lg">Batal</button>
+                <button id="save-status-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Simpan</button>
+            </div>
+        </div>
+    </div>
 
+    <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
     <script src="../assets/app.js" defer></script>
     <script src="../assets/sidebar-sub.js" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const tableBody = document.getElementById('tableBody');
-        const tanggalAbsenInput = document.getElementById('tanggalAbsen');
-        const saveBtn = document.getElementById('saveBtn');
-
+        // ... (kode yang sudah ada sebelumnya) ...
         const TEACHER_KEY = 'schoolTeachers';
         const ATTENDANCE_KEY = 'schoolTeacherAttendance';
-
         const teachers = JSON.parse(localStorage.getItem(TEACHER_KEY)) || [];
         let attendanceData = JSON.parse(localStorage.getItem(ATTENDANCE_KEY)) || {};
+        
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById('current-date').textContent = today;
+        document.getElementById('history-date-picker').value = today;
 
-        const renderTable = (tanggal) => {
+        let todayState = { currentPage: 1, rowsPerPage: 10 };
+        let historyState = { currentPage: 1, rowsPerPage: 10 };
+
+        const renderReport = (date, state, isToday) => {
+            const tableBodyId = isToday ? 'today-log-body' : 'history-log-body';
+            const paginationId = isToday ? 'today-pagination-controls' : 'history-pagination-controls';
+            
+            const tableBody = document.getElementById(tableBodyId);
+            const paginationControls = document.getElementById(paginationId);
             tableBody.innerHTML = '';
-            const todaysAttendance = attendanceData[tanggal] || {};
 
-            if (teachers.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="3" class="text-center py-4">Data guru tidak ditemukan. Silakan tambahkan data guru terlebih dahulu.</td></tr>`;
+            const dailyAttendance = attendanceData[date] || {};
+            let counts = { Hadir: 0, Sakit: 0, Izin: 0, Alpha: 0, Telat: 0 };
+            
+            const statusColors = {
+                Hadir: 'bg-green-100 text-green-800', Telat: 'bg-cyan-100 text-cyan-800',
+                Sakit: 'bg-orange-100 text-orange-800', Izin: 'bg-yellow-100 text-yellow-800',
+                Alpha: 'bg-red-100 text-red-800',
+            };
+
+            let reportData = [];
+            teachers.forEach(teacher => {
+                const record = dailyAttendance[teacher.id];
+                let status = record ? record.status : 'Alpha';
+                if (!isToday && !record) status = '-';
+                if (status !== '-') counts[status]++;
+                reportData.push({ teacherId: teacher.id, teacherName: teacher.nama, status: status, time: record?.time || '-' });
+            });
+            
+            const totalEntries = reportData.length;
+            const totalPages = Math.ceil(totalEntries / state.rowsPerPage);
+            const start = (state.currentPage - 1) * state.rowsPerPage;
+            const end = start + state.rowsPerPage;
+            const paginatedData = reportData.slice(start, end);
+
+            paginatedData.forEach(item => {
+                const statusBadge = `<span class="status-badge ${statusColors[item.status] || 'bg-gray-100'} text-xs font-medium px-2.5 py-0.5 rounded-full">${item.status}</span>`;
+                tableBody.innerHTML += `<tr class="border-b" data-teacher-id="${item.teacherId}" data-date="${date}"><td class="p-3 font-medium">${item.teacherName}</td><td class="p-3">${statusBadge}</td><td class="p-3 text-gray-500">${item.time}</td></tr>`;
+            });
+            
+            paginationControls.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span>Show</span>
+                    <select class="rows-per-page border rounded-md p-1 bg-white">
+                        <option value="10" ${state.rowsPerPage === 10 ? 'selected' : ''}>10</option>
+                        <option value="25" ${state.rowsPerPage === 25 ? 'selected' : ''}>25</option>
+                        <option value="50" ${state.rowsPerPage === 50 ? 'selected' : ''}>50</option>
+                    </select>
+                    <span>entries</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button class="pagination-link rounded-l-md prev-page" ${state.currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                    <span class="px-3">Page ${state.currentPage} of ${totalPages || 1}</span>
+                    <button class="pagination-link rounded-r-md next-page" ${state.currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}>Next</button>
+                </div>`;
+
+            const prefix = isToday ? 'today-' : 'history-';
+            document.getElementById(`${prefix}hadir`).textContent = counts.Hadir;
+            document.getElementById(`${prefix}telat`).textContent = counts.Telat;
+            document.getElementById(`${prefix}sakit`).textContent = counts.Sakit;
+            document.getElementById(`${prefix}izin`).textContent = counts.Izin;
+            document.getElementById(`${prefix}alpha`).textContent = counts.Alpha;
+        };
+        
+        const onScanSuccess = (decodedText) => {
+            const teacher = teachers.find(t => t.id === decodedText);
+            if (!teacher) { App.helpers.showToast('QR Code tidak valid.', 'error'); return; }
+            if (!attendanceData[today]) attendanceData[today] = {};
+            if (attendanceData[today][teacher.id]) { App.helpers.showToast(`${teacher.nama} sudah absen hari ini.`, 'error'); return; }
+            const now = new Date();
+            const time = now.toTimeString().slice(0, 8);
+            const lateTime = new Date(`${today}T07:35:00`);
+            const status = now > lateTime ? 'Telat' : 'Hadir';
+            attendanceData[today][teacher.id] = { status: status, time: time };
+            localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(attendanceData));
+            App.helpers.showToast(`Absen Berhasil: ${teacher.nama} (${status})`);
+            renderReport(today, todayState, true);
+        };
+        
+        // --- Event Listeners untuk Laporan, Paginasi, dan Modal ---
+        // ... (kode event listener yang sudah ada sebelumnya) ...
+        document.getElementById('history-date-picker').addEventListener('change', (e) => {
+            historyState.currentPage = 1; renderReport(e.target.value, historyState, false);
+        });
+        document.getElementById('today-pagination-controls').addEventListener('click', e => {
+            if (e.target.matches('.prev-page')) todayState.currentPage--;
+            if (e.target.matches('.next-page')) todayState.currentPage++;
+            if (e.target.matches('.rows-per-page')) { todayState.rowsPerPage = parseInt(e.target.value); todayState.currentPage = 1; }
+            renderReport(today, todayState, true);
+        });
+         document.getElementById('history-pagination-controls').addEventListener('click', e => {
+            const date = document.getElementById('history-date-picker').value;
+            if (e.target.matches('.prev-page')) historyState.currentPage--;
+            if (e.target.matches('.next-page')) historyState.currentPage++;
+            if (e.target.matches('.rows-per-page')) { historyState.rowsPerPage = parseInt(e.target.value); historyState.currentPage = 1; }
+            renderReport(date, historyState, false);
+        });
+        const scanModal = document.getElementById('scan-modal');
+        let html5QrcodeScanner;
+        document.getElementById('scan-btn').addEventListener('click', () => {
+            scanModal.classList.remove('hidden');
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } });
+            html5QrcodeScanner.render(onScanSuccess, () => {});
+        });
+        document.getElementById('close-scan-btn').addEventListener('click', () => {
+            if(html5QrcodeScanner) html5QrcodeScanner.clear();
+            scanModal.classList.add('hidden');
+        });
+        const statusModal = document.getElementById('status-modal');
+        let editInfo = {};
+        const openStatusModal = (teacherId, date) => {
+            editInfo = { teacherId, date };
+            const teacher = teachers.find(t => t.id === teacherId);
+            const currentStatus = attendanceData[date]?.[teacherId]?.status || 'Alpha';
+            document.getElementById('status-modal-teacher-name').textContent = teacher.nama;
+            document.getElementById('status-modal-date').textContent = date;
+            document.getElementById('status-modal-select').value = currentStatus;
+            statusModal.classList.remove('hidden');
+        };
+        document.getElementById('cancel-status-btn').addEventListener('click', () => statusModal.classList.add('hidden'));
+        document.querySelector('#today-log-body').addEventListener('click', e => {
+            const row = e.target.closest('tr');
+            if (row) openStatusModal(row.dataset.teacherId, row.dataset.date);
+        });
+        document.querySelector('#history-log-body').addEventListener('click', e => {
+            const row = e.target.closest('tr');
+            if (row) openStatusModal(row.dataset.teacherId, row.dataset.date);
+        });
+        document.getElementById('save-status-btn').addEventListener('click', () => {
+            const { teacherId, date } = editInfo;
+            const newStatus = document.getElementById('status-modal-select').value;
+            const time = attendanceData[date]?.[teacherId]?.time || new Date().toTimeString().slice(0,8);
+            if (!attendanceData[date]) attendanceData[date] = {};
+            attendanceData[date][teacherId] = { status: newStatus, time: (newStatus === 'Hadir' || newStatus === 'Telat') ? time : '-' };
+            localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(attendanceData));
+            App.helpers.showToast('Status berhasil diubah!');
+            statusModal.classList.add('hidden');
+            renderReport(today, todayState, true);
+            renderReport(document.getElementById('history-date-picker').value, historyState, false);
+        });
+
+        // ===== BAGIAN BARU: Laporan Individual =====
+        const individualTeacherSelect = document.getElementById('individual-teacher-select');
+        const startDateSelect = document.getElementById('start-date-select');
+        const endDateSelect = document.getElementById('end-date-select');
+        const individualReportContent = document.getElementById('individual-report-content');
+        const individualLogBody = document.getElementById('individual-log-body');
+
+        const renderIndividualReport = () => {
+            const teacherId = individualTeacherSelect.value;
+            const startDate = startDateSelect.value;
+            const endDate = endDateSelect.value;
+
+            if (!teacherId || !startDate || !endDate) {
+                individualReportContent.classList.add('hidden');
                 return;
             }
+            individualReportContent.classList.remove('hidden');
 
-            teachers.forEach((teacher, index) => {
-                const currentStatus = todaysAttendance[teacher.id] || 'Hadir'; // Default ke Hadir
+            let counts = { Hadir: 0, Sakit: 0, Izin: 0, Alpha: 0, Telat: 0 };
+            individualLogBody.innerHTML = '';
+            
+            for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+                const dateString = d.toISOString().slice(0, 10);
+                const record = attendanceData[dateString]?.[teacherId];
+                const status = record?.status || 'Alpha';
                 
-                const statuses = ['Hadir', 'Sakit', 'Izin', 'Alpha'];
-                const radioButtonsHTML = statuses.map(status => `
-                    <div class="inline-block">
-                        <input type="radio" name="status-${teacher.id}" id="status-${teacher.id}-${status}" value="${status}" class="hidden" data-id="${teacher.id}" ${currentStatus === status ? 'checked' : ''}>
-                        <label for="status-${teacher.id}-${status}" class="radio-label">${status}</label>
-                    </div>
-                `).join('');
+                counts[status]++;
+                individualLogBody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-3">${dateString}</td>
+                        <td class="p-3">${status}</td>
+                        <td class="p-3 text-gray-500">${record?.time || '-'}</td>
+                    </tr>`;
+            }
+            
+            document.getElementById(`individual-hadir`).textContent = counts.Hadir;
+            document.getElementById(`individual-telat`).textContent = counts.Telat;
+            document.getElementById(`individual-sakit`).textContent = counts.Sakit;
+            document.getElementById(`individual-izin`).textContent = counts.Izin;
+            document.getElementById(`individual-alpha`).textContent = counts.Alpha;
+        };
 
-                tableBody.innerHTML += `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 text-center">${index + 1}</td>
-                        <td class="px-6 py-4">
-                            <div class="font-medium text-gray-900">${teacher.nama}</div>
-                            <div class="text-xs text-gray-500">NIP: ${teacher.nip || '-'}</div>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                            <div class="flex justify-center items-center gap-2 flex-wrap">
-                                ${radioButtonsHTML}
-                            </div>
-                        </td>
-                    </tr>
-                `;
+        const populateTeacherDropdown = () => {
+            individualTeacherSelect.innerHTML = '<option value="">- Pilih Pegawai -</option>';
+            teachers.forEach(t => {
+                individualTeacherSelect.innerHTML += `<option value="${t.id}">${t.nama}</option>`;
             });
         };
 
-        saveBtn.addEventListener('click', () => {
-            const tanggal = tanggalAbsenInput.value;
-            if (!tanggal) {
-                App.helpers.showToast('Silakan pilih tanggal terlebih dahulu!', 'error');
-                return;
-            }
-
-            let newAttendanceForDay = {};
-            const checkedRadios = document.querySelectorAll('input[type="radio"]:checked');
-            
-            checkedRadios.forEach(radio => {
-                const teacherId = radio.dataset.id;
-                const status = radio.value;
-                newAttendanceForDay[teacherId] = status;
-            });
-
-            attendanceData[tanggal] = newAttendanceForDay;
-            localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(attendanceData));
-            App.helpers.showToast(`Absensi untuk tanggal ${tanggal} berhasil disimpan!`);
-        });
-
-        tanggalAbsenInput.addEventListener('change', () => {
-            renderTable(tanggalAbsenInput.value);
-        });
-
-        // Inisialisasi halaman
-        const today = new Date().toISOString().slice(0, 10);
-        tanggalAbsenInput.value = today;
-        renderTable(today);
+        [individualTeacherSelect, startDateSelect, endDateSelect].forEach(el => el.addEventListener('change', renderIndividualReport));
+        
+        // --- Inisialisasi ---
+        populateTeacherDropdown();
+        renderReport(today, todayState, true);
+        renderReport(today, historyState, false);
     });
     </script>
 </body>
 </html>
+
