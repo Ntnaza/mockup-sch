@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Kelas - Aplikasi Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <style>
+    .modal { transition: opacity 0.25s ease; }
+    .toast { transition: opacity 0.3s ease, transform 0.3s ease; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div id="sidebar-placeholder"></div>
+
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto p-6 md:p-10">
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Form Input -->
+        <div class="col-span-1">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Formulir Kelas</h3>
+            <form id="kelasForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Nama Kelas</label>
+                <input type="text" id="namaKelas" class="w-full border rounded-lg py-2 px-3 mt-1 text-sm" placeholder="contoh: X RPL 1" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Wali Kelas</label>
+                <select id="waliKelas" class="w-full border rounded-lg py-2 px-3 mt-1 text-sm" required>
+                  <option value="">-- Pilih Wali Kelas --</option>
+                  <option>NU'MAN, S.Pd</option>
+                  <option>NURI PURNAMASARI, S.S</option>
+                  <option>HAWIN MUALIF, S.T</option>
+                  <option>DINA IKA AGUSTIANI</option>
+                  <option>HERHER ABDUL KOHAR, S.Kom</option>
+                  <option>ATI ROHAYATI, S.PdI</option>
+                  <option>RESITA AGUSTIN WIDANINGSIH, S.Kom</option>
+                  <option>RUDI PERMADI, S.E</option>
+                  <option>MAHMUDIN, S.Pd.I</option>
+                  <option>BAMBANG MUHAMMAD, S.Pd</option>
+                </select>
+              </div>
+              <div class="flex gap-3">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                  <ion-icon name="save-outline" class="mr-2"></ion-icon> Simpan
+                </button>
+                <button type="reset" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                  <ion-icon name="close-circle-outline" class="mr-2"></ion-icon> Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tabel Kelas -->
+        <div class="col-span-2">
+          <div class="bg-white p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-gray-800">Pengaturan Kelas</h3>
+              <input type="text" id="searchKelas" class="border rounded-lg py-2 px-4 text-sm w-1/3" placeholder="Cari kelas / wali kelas...">
+            </div>
+            <div class="overflow-x-auto border rounded-lg">
+              <table class="w-full text-sm text-left text-gray-600">
+                <thead class="text-xs uppercase bg-gray-100 text-gray-700">
+                  <tr>
+                    <th class="px-6 py-3 w-10">No</th>
+                    <th class="px-6 py-3">Nama Kelas</th>
+                    <th class="px-6 py-3">Wali Kelas</th>
+                    <th class="px-6 py-3 text-center w-32">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Hapus -->
+  <div id="delete-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+      <ion-icon name="warning-outline" class="text-5xl text-yellow-500 mx-auto"></ion-icon>
+      <h3 class="text-xl font-semibold mt-4">Anda Yakin?</h3>
+      <p class="text-gray-600 my-2">Data kelas ini akan dihapus secara permanen.</p>
+      <div class="flex justify-center gap-4 mt-6">
+        <button class="cancel-delete-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">Batal</button>
+        <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-container" class="fixed bottom-10 right-10 z-50"></div>
+  
+  <script src="../assets/app.js" defer></script>
+  <script src="../assets/sidebar-sub.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const kelasForm = document.getElementById('kelasForm');
+      const namaKelas = document.getElementById('namaKelas');
+      const waliKelas = document.getElementById('waliKelas');
+      const tableBody = document.getElementById('tableBody');
+      const searchKelas = document.getElementById('searchKelas');
+      const deleteModal = document.getElementById('delete-modal');
+      const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+      let kelasIdToDelete = null;
+
+      const KEY = 'schoolClasses';
+      const getInitialData = () => [
+        { id: 'K01', nama: 'X IPA 1', wali: "NU'MAN, S.Pd" },
+        { id: 'K02', nama: 'X IPS 1', wali: 'NURI PURNAMASARI, S.S' },
+        { id: 'K03', nama: 'XI IPA 2', wali: 'HAWIN MUALIF, S.T' },
+      ];
+
+      let kelas = JSON.parse(localStorage.getItem(KEY));
+      if (!kelas || kelas.length === 0) {
+        kelas = getInitialData();
+        localStorage.setItem(KEY, JSON.stringify(kelas));
+      }
+
+      const render = () => {
+        tableBody.innerHTML = '';
+        const searchTerm = searchKelas.value.toLowerCase();
+        const filtered = kelas.filter(k =>
+          (k.nama && k.nama.toLowerCase().includes(searchTerm)) ||
+          (k.wali && k.wali.toLowerCase().includes(searchTerm))
+        );
+
+        if (filtered.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4">Data kelas tidak ditemukan.</td></tr>`;
+          return;
+        }
+
+        filtered.forEach((k, index) => {
+          tableBody.innerHTML += `
+            <tr class="bg-white border-b hover:bg-gray-50">
+              <td class="px-6 py-4 text-center">${index + 1}</td>
+              <td class="px-6 py-4 font-medium text-gray-900">${k.nama}</td>
+              <td class="px-6 py-4">${k.wali}</td>
+              <td class="px-6 py-4 text-center flex justify-center gap-3">
+                <button class="edit-btn text-gray-600 hover:text-blue-600" data-id="${k.id}" title="Edit"><ion-icon name="create-outline"></ion-icon></button>
+                <button class="delete-btn text-gray-600 hover:text-red-600" data-id="${k.id}" title="Hapus"><ion-icon name="trash-outline"></ion-icon></button>
+              </td>
+            </tr>`;
+        });
+      };
+
+      searchKelas.addEventListener('input', render);
+
+      // Tambah kelas
+      kelasForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newKelas = {
+          id: 'K' + Date.now(),
+          nama: namaKelas.value,
+          wali: waliKelas.value
+        };
+        kelas.push(newKelas);
+        localStorage.setItem(KEY, JSON.stringify(kelas));
+        render();
+        kelasForm.reset();
+      });
+
+      // Modal hapus
+      const openDeleteModal = (id) => {
+        kelasIdToDelete = id;
+        deleteModal.classList.remove('hidden');
+      };
+      const closeDeleteModal = () => {
+        kelasIdToDelete = null;
+        deleteModal.classList.add('hidden');
+      };
+
+      tableBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.delete-btn');
+        if (btn) openDeleteModal(btn.dataset.id);
+      });
+
+      deleteModal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('cancel-delete-btn') || e.target === deleteModal) {
+          closeDeleteModal();
+        }
+      });
+
+      confirmDeleteBtn.addEventListener('click', () => {
+        if (kelasIdToDelete) {
+          kelas = kelas.filter(k => k.id !== kelasIdToDelete);
+          localStorage.setItem(KEY, JSON.stringify(kelas));
+          render();
+          closeDeleteModal();
+        }
+      });
+
+      render();
+    });
+  </script>
+</body>
+</html>

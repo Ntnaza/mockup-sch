@@ -75,6 +75,7 @@ function buildSidebar() {
                         <ion-icon name="chevron-down-outline" class="w-4 h-4 transform transition-transform"></ion-icon>
                     </button>
                     <div class="sidebar-submenu">
+                        <a href="../kurikulum/kelas.html" class="sidebar-link" data-page="kelas">Kelas</a>
                         <a href="../kurikulum/jadwal.html" class="sidebar-link" data-page="jadwal">Jadwal Pelajaran</a>
                         <a href="../kurikulum/akademik.html" class="sidebar-link" data-page="akademik">Pengolahan Nilai</a>
                     </div>
